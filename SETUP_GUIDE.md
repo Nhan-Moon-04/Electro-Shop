@@ -31,14 +31,20 @@ resources/
 tailwind.config.js                       # Cấu hình Tailwind
 ```
 
-## 🚀 Hướng dẫn cài đặt
+##  Hướng dẫn cài đặt
 
 ### 1. Cài đặt Tailwind CSS
 ### tạo database đặt tên là electro
 ![alt text](image.png)
 
 và import file .sql vào nó nằm trong thư mục databsae ![alt text](image-1.png)
-sau đó chạy các lệnh dưới đây
+sau đó tạo file .env và copy file .env.example vào file .env sau đó đổi đoạn kết nối lại như dưới
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=electro
+DB_USERNAME=root
+DB_PASSWORD=
 ```bash
 # Cài đặt Tailwind CSS và dependencies
 npm install -D tailwindcss postcss autoprefixer
