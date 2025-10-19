@@ -14,7 +14,7 @@ return [
     */
 
     'defaults' => [
-        'guard' => 'web',
+        'guard' => 'api', // <-- THAY ĐỔI TỪ 'web' THÀNH 'api'
         'passwords' => 'users',
     ],
 
@@ -38,6 +38,12 @@ return [
     'guards' => [
         'web' => [
             'driver' => 'session',
+            'provider' => 'users',
+        ],
+
+        // <-- KHỐI 'api' MỚI ĐƯỢC THÊM VÀO -->
+        'api' => [
+            'driver' => 'jwt',
             'provider' => 'users',
         ],
     ],

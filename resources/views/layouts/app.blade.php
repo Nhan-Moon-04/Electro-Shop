@@ -1,24 +1,26 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'ElectroShop - Siêu thị điện máy hàng đầu Việt Nam')</title>
-    
+
     <!-- Tailwind CSS -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Alpine.js for interactive components -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
+
     @stack('styles')
 </head>
+
 <body class="bg-gray-50 font-sans antialiased">
-    
+
     <!-- Header -->
     <header class="bg-white shadow-md sticky top-0 z-50">
         <!-- Top Bar -->
@@ -54,13 +56,10 @@
                 <div class="hidden md:flex flex-1 max-w-2xl mx-8">
                     <form action="/products/search" method="GET" class="w-full">
                         <div class="relative">
-                            <input 
-                                type="text" 
-                                name="q"
-                                placeholder="Tìm kiếm sản phẩm: tivi, điện thoại, laptop..."
-                                class="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary transition"
-                            >
-                            <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-600 transition">
+                            <input type="text" name="q" placeholder="Tìm kiếm sản phẩm: tivi, điện thoại, laptop..."
+                                class="w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary transition">
+                            <button type="submit"
+                                class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-primary text-white px-4 py-2 rounded-md hover:bg-primary-600 transition">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
@@ -72,29 +71,44 @@
                     <!-- Cart -->
                     <a href="/cart" class="relative hover:text-primary transition">
                         <i class="fas fa-shopping-cart text-2xl"></i>
-                        <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                        <span
+                            class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                             3
                         </span>
                     </a>
 
                     <!-- User Account -->
-                    <div x-data="{ open: false }" class="relative">
+                    <div id="guest-menu" x-data="{ open: false }" class="relative" style="display: none;">
                         <button @click="open = !open" class="flex items-center space-x-2 hover:text-primary transition">
                             <i class="fas fa-user-circle text-2xl"></i>
                             <span class="hidden lg:block">Tài khoản</span>
                             <i class="fas fa-chevron-down text-xs"></i>
                         </button>
-
-                        <!-- Dropdown Menu -->
-                        <div x-show="open" 
-                             @click.away="open = false"
-                             x-transition
-                             class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50">
-                            <a href="/login" class="block px-4 py-2 hover:bg-gray-100 transition">
+                        <div x-show="open" @click.away="open = false" x-transition
+                            class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50">
+                            <a href="{{ route('login') }}" class="block px-4 py-2 hover:bg-gray-100 transition">
                                 <i class="fas fa-sign-in-alt mr-2"></i>Đăng nhập
                             </a>
-                            <a href="/register" class="block px-4 py-2 hover:bg-gray-100 transition">
+                            <a href="{{ route('register') }}" class="block px-4 py-2 hover:bg-gray-100 transition">
                                 <i class="fas fa-user-plus mr-2"></i>Đăng ký
+                            </a>
+                        </div>
+                    </div>
+
+                    <div id="user-menu" x-data="{ open: false }" class="relative" style="display: none;">
+                        <button @click="open = !open" class="flex items-center space-x-2 hover:text-primary transition">
+                            <i class="fas fa-user-circle text-2xl"></i>
+                            <span class="hidden lg:block" id="nav-user-name">Đang tải...</span>
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </button>
+                        <div x-show="open" @click.away="open = false" x-transition
+                            class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50">
+                            <a href="/account" class="block px-4 py-2 hover:bg-gray-100 transition">
+                                <i class="fas fa-user mr-2"></i>Tài khoản của tôi
+                            </a>
+                            <a href="#" id="nav-logout-button"
+                                class="block px-4 py-2 hover:bg-gray-100 transition text-red-600">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Đăng xuất
                             </a>
                         </div>
                     </div>
@@ -110,12 +124,8 @@
             <div class="md:hidden mt-4">
                 <form action="/products/search" method="GET">
                     <div class="relative">
-                        <input 
-                            type="text" 
-                            name="q"
-                            placeholder="Tìm kiếm sản phẩm..."
-                            class="w-full px-4 py-2 pr-12 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary"
-                        >
+                        <input type="text" name="q" placeholder="Tìm kiếm sản phẩm..."
+                            class="w-full px-4 py-2 pr-12 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-primary">
                         <button type="submit" class="absolute right-2 top-1/2 transform -translate-y-1/2 text-primary">
                             <i class="fas fa-search"></i>
                         </button>
@@ -135,18 +145,16 @@
                         </a>
                     </li>
                     <li x-data="{ open: false }" class="relative">
-                        <button @mouseenter="open = true" @mouseleave="open = false" class="flex items-center space-x-2 hover:text-primary transition font-medium">
+                        <button @mouseenter="open = true" @mouseleave="open = false"
+                            class="flex items-center space-x-2 hover:text-primary transition font-medium">
                             <i class="fas fa-th-large"></i>
                             <span>Danh mục sản phẩm</span>
                             <i class="fas fa-chevron-down text-xs"></i>
                         </button>
-                        
+
                         <!-- Mega Menu -->
-                        <div x-show="open" 
-                             @mouseenter="open = true" 
-                             @mouseleave="open = false"
-                             x-transition
-                             class="absolute left-0 mt-2 w-screen max-w-6xl bg-white rounded-lg shadow-xl p-6 z-50 -ml-32">
+                        <div x-show="open" @mouseenter="open = true" @mouseleave="open = false" x-transition
+                            class="absolute left-0 mt-2 w-screen max-w-6xl bg-white rounded-lg shadow-xl p-6 z-50 -ml-32">
                             <div class="grid grid-cols-4 gap-6">
                                 <div>
                                     <h3 class="font-bold text-primary mb-3">Điện thoại & Tablet</h3>
@@ -285,17 +293,16 @@
 
             <!-- Copyright -->
             <div class="border-t border-gray-700 pt-6 text-center text-sm">
-                <p>&copy; 2025 ElectroShop. All rights reserved. Designed with <i class="fas fa-heart text-red-500"></i> by ElectroShop Team</p>
+                <p>&copy; 2025 ElectroShop. All rights reserved. Designed with <i class="fas fa-heart text-red-500"></i>
+                    by ElectroShop Team</p>
             </div>
         </div>
     </footer>
 
     <!-- Back to Top Button -->
-    <button 
-        id="backToTop"
+    <button id="backToTop"
         class="fixed bottom-8 right-8 bg-primary text-white w-12 h-12 rounded-full shadow-lg hover:bg-primary-600 transition-all duration-300 opacity-0 pointer-events-none z-50"
-        onclick="window.scrollTo({top: 0, behavior: 'smooth'})"
-    >
+        onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
         <i class="fas fa-arrow-up"></i>
     </button>
 
@@ -303,7 +310,7 @@
 
     <script>
         // Back to top button
-        window.addEventListener('scroll', function() {
+        window.addEventListener('scroll', function () {
             const backToTop = document.getElementById('backToTop');
             if (window.pageYOffset > 300) {
                 backToTop.classList.remove('opacity-0', 'pointer-events-none');
@@ -314,5 +321,63 @@
             }
         });
     </script>
+
+    <script>
+        // Hàm gọi ở trang account/profile.blade.php
+        function handleLogout() {
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json'
+                    }
+                });
+            }
+            localStorage.removeItem('auth_token');
+            window.location.href = '/login';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const token = localStorage.getItem('auth_token');
+            const guestMenu = document.getElementById('guest-menu');
+            const userMenu = document.getElementById('user-menu');
+
+            if (token) {
+                fetch('/api/auth/me', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Accept': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.id) {
+                            userMenu.style.display = 'block';
+                            document.getElementById('nav-user-name').innerText = data.name;
+                        } else {
+                            handleLogout();
+                        }
+                    })
+                    .catch(error => {
+                        handleLogout();
+                    });
+            } else {
+                guestMenu.style.display = 'block';
+            }
+
+            const logoutButton = document.getElementById('nav-logout-button');
+            if (logoutButton) {
+                logoutButton.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    handleLogout();
+                });
+            }
+        });
+    </script>
+
+
 </body>
+
 </html>
