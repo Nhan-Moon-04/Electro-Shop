@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Models\EmailVerificationToken;
+use App\Mail\AccountVerificationMail;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -36,6 +40,14 @@ class AuthController extends Controller
             return response()->json(['error' => 'Email hoặc mật khẩu không đúng'], 401);
         }
 
+        // Nếu user chưa active (chưa xác nhận email) thì chặn login
+        $user = auth('api')->user();
+        if ($user && isset($user->user_active) && !$user->user_active) {
+            // logout to invalidate token
+            auth('api')->logout();
+            return response()->json(['error' => 'Tài khoản chưa được xác nhận email. Vui lòng kiểm tra email để xác nhận.'], 403);
+        }
+
         return $this->createNewToken($token);
     }
 
@@ -55,20 +67,39 @@ class AuthController extends Controller
         }
 
 
+        // create inactive user
         $user = User::create([
             'user_name' => $request->name,
             'user_email' => $request->email,
             'user_password' => Hash::make($request->password),
             'user_register_date' => Carbon::now(),
-            'user_active' => 1,
+            'user_active' => 0,
             'user_login_name' => '0000000000',
             'user_phone' => '0000000000',
         ]);
 
-        return response()->json([
-            'message' => 'Đăng ký tài khoản thành công!',
+        // create verification token
+        $token = bin2hex(random_bytes(32));
+        $expireAt = now()->addMinutes(60);
 
-            'user' => $this->getFormattedUser($user)
+        EmailVerificationToken::create([
+            'MaNguoiDung' => $user->user_id,
+            'Token' => $token,
+            'ExpireAt' => $expireAt,
+            'Used' => false,
+        ]);
+
+        // send verification email
+        try {
+            Mail::to($user->user_email)->send(new AccountVerificationMail($user->user_email, $token));
+        } catch (\Exception $e) {
+            // Log and let user know to contact admin
+            Log::error('Failed to send account verification email: ' . $e->getMessage());
+            return response()->json(['error' => 'Không thể gửi email xác nhận. Vui lòng thử lại sau.'], 500);
+        }
+
+        return response()->json([
+            'message' => 'Đăng ký thành công. Vui lòng kiểm tra email để xác nhận tài khoản.'
         ], 201);
     }
 

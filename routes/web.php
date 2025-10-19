@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ActivationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -104,6 +105,9 @@ Route::get('/forgot-password', function () {
 Route::get('/reset-password/{token}', function ($token) {
     return view('auth.reset-password', ['token' => $token]);
 })->name('password.reset');
+
+// Account email verification link
+Route::get('/verify-account/{token}', [ActivationController::class, 'verify'])->name('account.verify');
 
 
 
