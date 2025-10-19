@@ -6,39 +6,74 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
+// Bỏ 'HasApiTokens' vì chúng ta dùng JWT
+use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+
+    protected $table = 'users';
+
+
+    protected $primaryKey = 'user_id';
+
+
+    public $timestamps = false;
+
+
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'user_name',
+        'user_email',
+        'user_password',
+        'user_register_date',
+        'user_active',
+        'user_login_name',
+        'user_phone',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
+
     protected $hidden = [
-        'password',
+        'user_password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
+
     protected $casts = [
-        'email_verified_at' => 'datetime',
+
+        'user_register_date' => 'datetime',
     ];
+
+
+    public function getAuthPassword()
+    {
+        return $this->user_password;
+    }
+
+
+    public function getJWTIdentifier()
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Trả về một mảng key/value chứa bất kỳ custom claim nào
+     * được thêm vào JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims()
+    {
+
+        return [
+            'name' => $this->user_name,
+            'email' => $this->user_email
+        ];
+    }
+
+    public function getEmailForPasswordReset()
+    {
+        return $this->user_email;
+    }
 }

@@ -17,7 +17,7 @@ use App\Http\Controllers\ProductController;
 
 // Trang chủ
 
-Route ::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 // Sản phẩm
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 
@@ -30,10 +30,14 @@ Route::get('/products/{id}', [ProductController::class, 'show'])->name('products
 Route::get('/category/{id}', [ProductController::class, 'category'])->name('products.category')->where('id', '[0-9]+');
 
 // Giỏ hàng
-Route::get('/cart', function() { return view('cart.index'); })->name('cart.index');
+Route::get('/cart', function () {
+    return view('cart.index');
+})->name('cart.index');
 
 // Thanh toán
-Route::get('/checkout', function() { return view('checkout.index'); })->name('checkout.index');
+Route::get('/checkout', function () {
+    return view('checkout.index');
+})->name('checkout.index');
 
 Route::post('/checkout/process', function () {
     // Xử lý thanh toán
@@ -41,46 +45,70 @@ Route::post('/checkout/process', function () {
 
 // Tài khoản
 Route::middleware(['auth'])->group(function () {
-    Route::get('/account/profile', function() { return view('account.profile'); })->name('account.profile');
-    
+    Route::get('/account/profile', function () {
+        return view('account.profile');
+    })->name('account.profile');
+
     Route::put('/account/update', function () {
         // Xử lý cập nhật profile
     })->name('account.update');
-    
+
     Route::get('/account/orders', function () {
         return view('account.profile');
     })->name('account.orders');
-    
+
     Route::get('/account/addresses', function () {
         return view('account.profile');
     })->name('account.addresses');
-    
+
     Route::get('/account/wishlist', function () {
         return view('account.profile');
     })->name('account.wishlist');
-    
+
     Route::get('/account/reviews', function () {
         return view('account.profile');
     })->name('account.reviews');
-    
+
     Route::get('/account/vouchers', function () {
         return view('account.profile');
     })->name('account.vouchers');
-    
+
     Route::get('/account/password', function () {
         return view('account.profile');
     })->name('account.password');
 });
 
-// Authentication routes (temporary)
+
+
+//  đăng nhập / đăng ký
+
 Route::get('/login', function () {
-    return redirect('/');
+    return view('auth.login');
 })->name('login');
 
 Route::get('/register', function () {
-    return redirect('/');
+    return view('auth.register');
 })->name('register');
 
-Route::post('/logout', function () {
-    return redirect('/');
-})->name('logout');
+// trang tài khoản
+Route::get('/account', function () {
+    return view('account.profile');
+})->name('account.profile');
+
+// Quên mật khẩu
+Route::get('/forgot-password', function () {
+    return view('auth.forgot-password');
+})->name('password.request'); // Đặt tên chuẩn là 'password.request'
+
+//  Đặt lại mật khẩu"
+Route::get('/reset-password/{token}', function ($token) {
+    return view('auth.reset-password', ['token' => $token]);
+})->name('password.reset');
+
+
+
+
+
+
+
+
