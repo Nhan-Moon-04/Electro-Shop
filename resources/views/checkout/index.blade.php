@@ -164,11 +164,7 @@
                 </label>
             </div>
 
-            <!-- Visible trigger button to show QR (user must click to view QR) -->
-            <div class="mb-4 text-center">
-                <button id="showQRBtn" class="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg shadow">Quét mã QR để
-                    thanh toán</button>
-            </div>
+
 
 
 
@@ -396,7 +392,7 @@
                         body: JSON.stringify({
                             order_id: orderId,
                             amount: {{ $total_amount ?? 0 }}
-                                                        })
+                                                                    })
                     });
 
                     const result = await response.json();
