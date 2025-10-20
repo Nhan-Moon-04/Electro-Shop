@@ -163,6 +163,39 @@
             alert("Thank you for sending crypto. The transaction will be processed!");
             setTimeout(() => window.location.href = "/", 2000);
         }
+
+        // Auto show VNĐ section and populate amount if possible
+        (function autoShowAndPopulate() {
+            try {
+                // show VNĐ section by default on payment page
+                showMethod('vnd');
+
+                // Try to get amount from several sources in priority:
+                // 1) window.__order_total (server-side injected)
+                // 2) query param 'amount'
+                // 3) existing input value
+                let amount = 0;
+                if (window.__order_total) {
+                    amount = parseInt(window.__order_total, 10) || 0;
+                } else {
+                    // parse querystring
+                    const params = new URLSearchParams(window.location.search);
+                    if (params.has('amount')) {
+                        amount = parseInt(params.get('amount'), 10) || 0;
+                    }
+                }
+
+                const amountInput = document.getElementById('amount');
+                if (amountInput && amount > 0) {
+                    amountInput.value = amount;
+                }
+
+                // update QR immediately
+                updateQR();
+            } catch (e) {
+                console.warn('Auto populate failed:', e && e.message);
+            }
+        })();
     </script>
 
 </body>

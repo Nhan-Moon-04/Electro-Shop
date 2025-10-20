@@ -131,7 +131,7 @@
             <!-- Payment Methods -->
             <div class="space-y-3 mb-6">
                 <label class="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                    <input type="radio" name="payment_method" value="vnpay" class="mr-3" checked>
+                    <input type="radio" name="payment_method" value="vnpay" class="mr-3">
                     <div class="flex items-center">
                         <img src="https://via.placeholder.com/40x40/0066CC/FFFFFF?text=VP" alt="VNPay" class="w-8 h-8 mr-3">
                         <div>
@@ -164,51 +164,13 @@
                 </label>
             </div>
 
-            <!-- QR Payment Section (hidden by default) -->
-            <div id="qr-payment-section" class="hidden mb-6">
-                <div class="text-center">
-                    <h3 class="font-semibold mb-3 text-blue-600">📱 Quét mã QR để thanh toán</h3>
-                    <div class="bg-gradient-to-br from-blue-50 to-indigo-100 p-6 rounded-xl border border-blue-200">
-                        <img id="qr-code" src="" alt="QR Code"
-                            class="mx-auto mb-4 border-4 border-white rounded-lg shadow-lg" style="max-width: 220px;">
-
-                        <!-- Bank Info -->
-                        <div id="bank-info" class="bg-white p-4 rounded-lg shadow-sm">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                                <div class="text-left">
-                                    <p class="text-gray-500">🏦 Ngân hàng:</p>
-                                    <p class="font-semibold text-gray-800" id="bank-name">VietinBank</p>
-                                </div>
-                                <div class="text-left">
-                                    <p class="text-gray-500">💳 Số tài khoản:</p>
-                                    <p class="font-mono font-semibold text-gray-800" id="account-no">100610161104</p>
-                                </div>
-                                <div class="text-left">
-                                    <p class="text-gray-500">👤 Chủ tài khoản:</p>
-                                    <p class="font-semibold text-gray-800" id="account-name">Nguyen Thien Nhan</p>
-                                </div>
-                                <div class="text-left">
-                                    <p class="text-gray-500">💰 Số tiền:</p>
-                                    <p class="font-bold text-red-600 text-lg" id="transfer-amount">
-                                        {{ number_format($total_amount ?? 0) }}₫</p>
-                                </div>
-                            </div>
-                            <div class="mt-3 pt-3 border-t">
-                                <p class="text-gray-500 text-sm">📝 Nội dung:</p>
-                                <p class="font-mono bg-yellow-100 px-3 py-1 rounded text-sm font-semibold"
-                                    id="transfer-content">DH[order_id]</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                        <p class="text-sm text-yellow-800">
-                            ⚠️ <strong>Lưu ý:</strong> Vui lòng chuyển <strong>đúng số tiền</strong> và ghi <strong>đúng nội
-                                dung</strong> để đơn hàng được xử lý tự động.
-                        </p>
-                    </div>
-                </div>
+            <!-- Visible trigger button to show QR (user must click to view QR) -->
+            <div class="mb-4 text-center">
+                <button id="showQRBtn" class="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg shadow">Quét mã QR để
+                    thanh toán</button>
             </div>
+
+
 
             <!-- VNPay Payment Section (hidden by default) -->
             <div id="vnpay-payment-section" class="mb-6">
@@ -246,96 +208,6 @@
     </div>
 
     <!-- Order Summary Sidebar -->
-    <div class="lg:col-span-1">
-        <div class="bg-white rounded-lg shadow-md p-6 sticky top-24">
-            <h3 class="font-bold text-xl mb-6">Đơn hàng của bạn</h3>
-
-            <!-- Order Items -->
-            <div class="space-y-4 mb-6 max-h-64 overflow-y-auto">
-                <div class="flex items-center space-x-3 pb-4 border-b">
-                    <img src="https://via.placeholder.com/60x60/FFFFFF/0066CC?text=P1" alt="Product"
-                        class="w-16 h-16 rounded-lg object-cover">
-                    <div class="flex-1">
-                        <h4 class="font-medium text-sm line-clamp-2">iPhone 15 Pro Max 256GB</h4>
-                        <p class="text-sm text-gray-600">SL: 1</p>
-                    </div>
-                    <span class="font-semibold">28.990.000₫</span>
-                </div>
-                <div class="flex items-center space-x-3 pb-4 border-b">
-                    <img src="https://via.placeholder.com/60x60/FFFFFF/0066CC?text=P2" alt="Product"
-                        class="w-16 h-16 rounded-lg object-cover">
-                    <div class="flex-1">
-                        <h4 class="font-medium text-sm line-clamp-2">MacBook Pro 14" M3 Pro</h4>
-                        <p class="text-sm text-gray-600">SL: 1</p>
-                    </div>
-                    <span class="font-semibold">52.990.000₫</span>
-                </div>
-                <div class="flex items-center space-x-3 pb-4">
-                    <img src="https://via.placeholder.com/60x60/FFFFFF/0066CC?text=P3" alt="Product"
-                        class="w-16 h-16 rounded-lg object-cover">
-                    <div class="flex-1">
-                        <h4 class="font-medium text-sm line-clamp-2">AirPods Pro 2 (USB-C)</h4>
-                        <p class="text-sm text-gray-600">SL: 2</p>
-                    </div>
-                    <span class="font-semibold">11.980.000₫</span>
-                </div>
-            </div>
-
-            <!-- Price Summary -->
-            <div class="space-y-3 mb-6">
-                <div class="flex justify-between text-gray-700">
-                    <span>Tạm tính</span>
-                    <span class="font-semibold">99.960.000₫</span>
-                </div>
-                <div class="flex justify-between text-gray-700">
-                    <span>Giảm giá sản phẩm</span>
-                    <span class="font-semibold text-red-600">-8.000.000₫</span>
-                </div>
-                <div class="flex justify-between text-gray-700">
-                    <span>Voucher</span>
-                    <span class="font-semibold text-red-600">-100.000₫</span>
-                </div>
-                <div class="flex justify-between text-gray-700">
-                    <span>Phí vận chuyển</span>
-                    <span class="font-semibold text-green-600">Miễn phí</span>
-                </div>
-            </div>
-
-            <hr class="my-4">
-
-            <!-- Total -->
-            <div class="flex justify-between items-center mb-6">
-                <span class="text-lg font-bold">Tổng thanh toán</span>
-                <span class="text-2xl font-bold text-red-600">91.860.000₫</span>
-            </div>
-
-            <!-- Terms -->
-            <label class="flex items-start mb-6 cursor-pointer">
-                <input type="checkbox" required class="mt-1 mr-3 w-5 h-5 text-primary rounded">
-                <span class="text-sm text-gray-600">
-                    Tôi đã đọc và đồng ý với
-                    <a href="#" class="text-primary hover:underline">Điều khoản và Điều kiện</a>
-                    của ElectroShop
-                </span>
-            </label>
-
-            <!-- Submit Button -->
-            <button id="placeOrderBtn" type="button" class="w-full btn-primary py-4 text-lg mb-3">
-                <i class="fas fa-check-circle mr-2"></i>Hoàn tất đặt hàng
-            </button>
-
-            <a href="/products" class="block w-full btn-outline text-center py-3">
-                <i class="fas fa-arrow-left mr-2"></i>Tiếp tục mua sắm
-            </a>
-
-            <!-- Security Badge -->
-            <div class="mt-6 pt-6 border-t text-center">
-                <i class="fas fa-lock text-green-500 text-2xl mb-2"></i>
-                <p class="text-sm text-gray-600">Thanh toán an toàn & bảo mật</p>
-            </div>
-        </div>
-    </div>
-    </div>
 
 @endsection
 
@@ -355,9 +227,10 @@
                     if (qrSection) qrSection.classList.add('hidden');
                     if (vnpaySection) vnpaySection.classList.add('hidden');
 
-                    // Show relevant section - CẢNH HAI PHƯƠNG THỨC ĐỀU HIỂN THỊ QR CODE
+                    // When user selects payment method, only show the correct SECTION placeholder.
+                    // We DO NOT auto-generate the QR here to avoid showing it unsolicited.
                     if (this.value === 'vnpay' || this.value === 'bank_transfer') {
-                        generateQRCode();
+                        // user will explicitly click "Quét mã QR để thanh toán" to generate and view the QR
                         if (qrSection) qrSection.classList.remove('hidden');
                         placeOrderBtn.innerHTML = '<i class="fas fa-qrcode mr-2"></i>Quét mã QR để thanh toán';
                     } else {
@@ -365,6 +238,18 @@
                     }
                 });
             });
+
+            // Add behavior for explicit QR button (do not auto-show on page load)
+            const showQRBtn = document.getElementById('showQRBtn');
+            if (showQRBtn) {
+                showQRBtn.addEventListener('click', function () {
+                    // generate and reveal QR when user explicitly requests it
+                    generateQRCode();
+                    if (qrSection) qrSection.classList.remove('hidden');
+                    // also update button appearance
+                    showQRBtn.classList.add('opacity-70');
+                });
+            }
 
             // Generate QR Code
             function generateQRCode() {
@@ -511,7 +396,7 @@
                         body: JSON.stringify({
                             order_id: orderId,
                             amount: {{ $total_amount ?? 0 }}
-                                    })
+                                                        })
                     });
 
                     const result = await response.json();
