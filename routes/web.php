@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ActivationController;
+use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\VNPayController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,19 +32,10 @@ Route::get('/products/{id}', [ProductController::class, 'show'])->name('products
 
 Route::get('/category/{id}', [ProductController::class, 'category'])->name('products.category')->where('id', '[0-9]+');
 
-// Giỏ hàng
-Route::get('/cart', function () {
-    return view('cart.index');
-})->name('cart.index');
+// Giỏ hàng đã bị loại bỏ - chỉ dùng "Mua ngay"
 
 // Thanh toán
-Route::get('/checkout', function () {
-    return view('checkout.index');
-})->name('checkout.index');
-
-Route::post('/checkout/process', function () {
-    // Xử lý thanh toán
-})->name('checkout.process');
+Route::get('/checkout', [PaymentController::class, 'showCheckout'])->name('checkout.index');
 
 // Tài khoản
 Route::middleware(['auth'])->group(function () {
@@ -108,6 +101,21 @@ Route::get('/reset-password/{token}', function ($token) {
 
 // Account email verification link
 Route::get('/verify-account/{token}', [ActivationController::class, 'verify'])->name('account.verify');
+
+// Payment routes (create order, show payment, webhook) - đã import ở trên
+
+Route::post('/create-order', [PaymentController::class, 'createOrder'])->name('orders.create');
+Route::get('/payment/{orderId}', [PaymentController::class, 'showPayment'])->name('payment.show');
+// webhook (no auth) used by payment provider to notify
+Route::post('/payment/webhook', [PaymentController::class, 'webhook'])->name('payment.webhook');
+
+// VNPay routes
+Route::prefix('vnpay')->group(function () {
+    Route::post('/create-payment', [VNPayController::class, 'createPayment'])->name('vnpay.create');
+    Route::get('/return', [VNPayController::class, 'vnpayReturn'])->name('vnpay.return');
+    Route::post('/ipn', [VNPayController::class, 'vnpayIPN'])->name('vnpay.ipn');
+    Route::post('/generate-qr', [VNPayController::class, 'generateQR'])->name('vnpay.qr');
+});
 
 
 
