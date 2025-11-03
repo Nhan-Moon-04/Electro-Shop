@@ -6,6 +6,9 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ActivationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\VNPayController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -117,6 +120,29 @@ Route::prefix('vnpay')->group(function () {
     Route::post('/generate-qr', [VNPayController::class, 'generateQR'])->name('vnpay.qr');
 });
 
+// Admin Routes (Tạm thời không có middleware để test)
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Products Management
+    Route::resource('products', AdminProductController::class);
+    
+    // Product Image Delete
+    Route::delete('/products/images/{image}', [AdminProductController::class, 'deleteImage'])->name('products.images.delete');
+    
+    // Product Trash & Restore
+    Route::get('/products/trash', [AdminProductController::class, 'trash'])->name('products.trash');
+    Route::post('/products/{id}/restore', [AdminProductController::class, 'restore'])->name('products.restore');
+    Route::delete('/products/{id}/force-delete', [AdminProductController::class, 'forceDelete'])->name('products.force-delete');
+    
+    // Categories Management
+    Route::resource('categories', AdminCategoryController::class);
+    
+    // Settings
+    Route::get('/settings', function() {
+        return view('admin.settings');
+    })->name('settings');
+});
 
 
 

@@ -6,10 +6,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-// Bỏ 'HasApiTokens' vì chúng ta dùng JWT
-use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
+// use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable // Tạm bỏ implements JWTSubject
 {
     use HasFactory, Notifiable;
 
@@ -51,29 +50,24 @@ class User extends Authenticatable implements JWTSubject
         return $this->user_password;
     }
 
-
+    public function getEmailForPasswordReset()
+    {
+        return $this->user_email;
+    }
+    
+    // JWT methods - uncomment khi cài đặt JWT package
+    /*
     public function getJWTIdentifier()
     {
         return $this->getKey();
     }
 
-    /**
-     * Trả về một mảng key/value chứa bất kỳ custom claim nào
-     * được thêm vào JWT.
-     *
-     * @return array
-     */
     public function getJWTCustomClaims()
     {
-
         return [
             'name' => $this->user_name,
             'email' => $this->user_email
         ];
     }
-
-    public function getEmailForPasswordReset()
-    {
-        return $this->user_email;
-    }
+    */
 }

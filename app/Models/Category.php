@@ -16,13 +16,13 @@ class Category extends Model
     protected $fillable = [
         'category_name',
         'category_img',
-        'category_type',
+        'categorry_type',  // Lưu ý: database có typo là "categorry_type"
         'category_added_date',
         'category_is_display'
     ];
 
     protected $casts = [
-        'category_is_display' => 'boolean',
+        'category_is_display' => 'integer',
     ];
 
     // Quan hệ với Products
