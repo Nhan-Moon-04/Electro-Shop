@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 // Import các controller chúng ta sẽ tạo ở bước sau
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ForgotPasswordController;
+use App\Http\Controllers\Api\CartController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,3 +44,14 @@ Route::group([
 });
 
 
+
+
+
+
+
+Route::middleware('auth:api')->prefix('cart')->group(function () {
+    Route::get('/items', [CartController::class, 'getItems']);
+    Route::post('/items', [CartController::class, 'addItem']);
+    Route::put('/items/{productVariantId}', [CartController::class, 'updateItemQuantity']);
+    Route::delete('/items/{productVariantId}', [CartController::class, 'removeItem']);
+});

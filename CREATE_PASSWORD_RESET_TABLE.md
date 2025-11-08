@@ -66,3 +66,5 @@ INSERT INTO migrations (migration, batch) VALUES ('2025_10_19_000001_create_pass
 -   After the table is present, the forgot-password flow in the app will be able to insert tokens into `password_reset_tokens`.
 
 If you want, I can also provide a one-liner PowerShell script your friend can run that will apply the SQL (if they have `mysql` client installed) or I'll add a small PHP helper to execute the statement using the project's DB config.
+
+php artisan config:clear; php artisan cache:clear; php artisan config:cache

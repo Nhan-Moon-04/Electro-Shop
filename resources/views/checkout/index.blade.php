@@ -263,6 +263,8 @@
                         order_id: orderId
                     })
                 })
+
+
                     .then(response => response.json())
                     .then(data => {
                         if (data.qr_url && document.getElementById('qr-code')) {
@@ -392,7 +394,7 @@
                         body: JSON.stringify({
                             order_id: orderId,
                             amount: {{ $total_amount ?? 0 }}
-                                                                    })
+                                                                                        })
                     });
 
                     const result = await response.json();
