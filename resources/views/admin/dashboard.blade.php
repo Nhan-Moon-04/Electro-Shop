@@ -65,7 +65,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <p class="text-gray-600 text-sm font-medium">Doanh thu</p>
-                <h3 class="text-3xl font-bold text-gray-800 mt-2">{{ number_format($totalRevenue) }}₫</h3>
+                <h3 class="text-3xl font-bold text-gray-800 mt-2">{{ number_format(num: $totalRevenue) }}₫</h3>
                 <p class="text-sm text-green-600 mt-2">
                     <i class="fas fa-arrow-up mr-1"></i>20% so với tháng trước
                 </p>

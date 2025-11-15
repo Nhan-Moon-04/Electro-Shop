@@ -9,6 +9,8 @@ use App\Http\Controllers\VNPayController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
+use App\Http\Controllers\Admin\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -130,14 +132,29 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Product Image Delete
     Route::delete('/products/images/{image}', [AdminProductController::class, 'deleteImage'])->name('products.images.delete');
     
-    // Product Trash & Restore
-    Route::get('/products/trash', [AdminProductController::class, 'trash'])->name('products.trash');
+    // Product Restore
     Route::post('/products/{id}/restore', [AdminProductController::class, 'restore'])->name('products.restore');
-    Route::delete('/products/{id}/force-delete', [AdminProductController::class, 'forceDelete'])->name('products.force-delete');
     
     // Categories Management
     Route::resource('categories', AdminCategoryController::class);
+    Route::post('/categories/{id}/restore', [AdminCategoryController::class, 'restore'])->name('categories.restore');
     
+    // Suppliers Management
+    Route::resource('suppliers', AdminSupplierController::class);
+    Route::post('/suppliers/{id}/restore', [AdminSupplierController::class, 'restore'])->name('suppliers.restore');
+    
+    // Routes quản lý đơn hàng
+    Route::prefix('orders')->name('orders.')->group(function () {
+        Route::get('/', [OrderController::class, 'index'])->name('index');
+        Route::get('/{id}', [OrderController::class, 'show'])->name('show');
+        Route::post('/{id}/status', [OrderController::class, 'updateStatus'])->name('updateStatus');
+        Route::post('/{id}/address', [OrderController::class, 'updateDeliveryAddress'])->name('updateAddress');
+        Route::post('/{id}/note', [OrderController::class, 'updateNote'])->name('updateNote');
+        Route::delete('/{id}', [OrderController::class, 'destroy'])->name('destroy');
+        Route::get('/{id}/print', [OrderController::class, 'print'])->name('print');
+        Route::get('/statistics/view', [OrderController::class, 'statistics'])->name('statistics');
+    });
+
     // Settings
     Route::get('/settings', function() {
         return view('admin.settings');

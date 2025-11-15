@@ -43,14 +43,8 @@ CREATE TABLE `admin` (
   `admin_active` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_vietnamese_ci;
 
---
--- Dumping data for table `admin`
---
 
-INSERT INTO `admin` (`admin_id`, `admin_login_name`, `admin_password`, `admin_name`, `admin_full_name`, `admin_avt_img`, `admin_birth`, `admin_sex`, `admin_email`, `admin_phone`, `admin_address`, `admin_role`, `admin_active`) VALUES
-(1, '21522436', '$2a$08$gacaZP8P7lcQeHoiW9fgkOr47/Y0vHv3HOixU1rELCc6rkv0oDw9K', 'Nhung', 'VoTruongNhat', 'admin_1.jpg', '2003-04-02', 1, '2001223265@huit.edu.vn', '0908396962', 'Ký túc xá khu A: Đường Tạ Quang Bửu, Khu phố 6, Phường Linh Trung, Thành phố Thủ Đức, Thành phố Hồ Chí Minh', 'Owner', 1);
 
--- --------------------------------------------------------
 
 --
 -- Table structure for table `carts`
@@ -1811,57 +1805,58 @@ INSERT INTO `staffs` (`staff_id`, `user_id`, `staff_role`, `staff_description`, 
 CREATE TABLE `suppliers` (
   `supplier_id` int(11) NOT NULL,
   `supplier_name` varchar(100) NOT NULL,
-  `supplier_logo` varchar(100) DEFAULT NULL
+  `supplier_logo` varchar(100) DEFAULT NULL,
+  `supplier_is_display` TINYINT(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_vietnamese_ci;
 
 --
 -- Dumping data for table `suppliers`
 --
 
-INSERT INTO `suppliers` (`supplier_id`, `supplier_name`, `supplier_logo`) VALUES
-(1, 'Samsung', 'samung.png'),
-(2, 'Sony', 'sony.png'),
-(3, 'LG', 'lg.png'),
-(4, 'Casper', 'casper.png'),
-(5, 'TCL', 'tcl.png'),
-(6, 'Sharp', 'sharp.png'),
-(7, 'TOSHIBA', 'toshiba.png'),
-(8, 'Xiaomi', 'xiaomi.png'),
-(9, 'AQUA', 'aqua.png'),
-(10, 'Panasonic', 'panasonic.png'),
-(11, 'Funiki', 'funiki.png'),
-(12, 'BOSCH', 'bosch.png'),
-(13, 'BlueStone', 'blustone.png'),
-(14, 'Kangaroo', 'kangaroo.png'),
-(15, 'Philips', 'philips.png'),
-(16, 'Pramie', 'pramie.png'),
-(17, 'Media', 'media.png'),
-(18, 'Whirlpool', 'whirlpool.png'),
-(19, 'Ferroli', 'ferroli.png'),
-(20, 'Smeg', 'smeg.png'),
-(21, 'iPhone', 'iphone.png'),
-(22, 'OPPO\r\n', 'oppo.png'),
-(23, 'vivo', 'vivo.png'),
-(24, 'SunHouse', 'sunhouse.png'),
-(25, 'realme', 'realme.png'),
-(26, 'beko', 'beko.png'),
-(27, 'HITACHI', 'hitachi.png'),
-(28, 'Bear', 'bear.png'),
-(29, 'CRYSTAL', 'crystal.png'),
-(30, 'LOCK&LOCK', 'lockvslock.png'),
-(31, 'CUCKOO', 'cuckoo.png'),
-(32, 'hp', 'hp.png'),
-(33, 'Lenovo', 'lenovo.png'),
-(34, 'MacBook', 'macbook.png'),
-(35, 'msi', 'msi.png'),
-(36, 'DELL', 'dell.png'),
-(37, 'ASUS', 'asus.png'),
-(38, 'iPad', 'ipad.png'),
-(39, 'Masstel', 'masstel.png'),
-(40, 'Hafele', 'hafele.png'),
-(41, 'DAIKIN', 'daikin.png'),
-(42, 'Nagakawa', 'nagakawa.png'),
-(43, 'Acer', 'acer.png');
+INSERT INTO `suppliers` (`supplier_id`, `supplier_name`, `supplier_logo`, `supplier_is_display`) VALUES
+(1, 'Samsung', 'samung.png', 1),
+(2, 'Sony', 'sony.png', 1),
+(3, 'LG', 'lg.png', 1),
+(4, 'Casper', 'casper.png', 1),
+(5, 'TCL', 'tcl.png', 1),
+(6, 'Sharp', 'sharp.png', 1),
+(7, 'TOSHIBA', 'toshiba.png', 1),
+(8, 'Xiaomi', 'xiaomi.png', 1),
+(9, 'AQUA', 'aqua.png', 1),
+(10, 'Panasonic', 'panasonic.png', 1),
+(11, 'Funiki', 'funiki.png', 1),
+(12, 'BOSCH', 'bosch.png', 1),
+(13, 'BlueStone', 'blustone.png', 1),
+(14, 'Kangaroo', 'kangaroo.png', 1),
+(15, 'Philips', 'philips.png', 1),
+(16, 'Pramie', 'pramie.png', 1),
+(17, 'Media', 'media.png', 1),
+(18, 'Whirlpool', 'whirlpool.png', 1),
+(19, 'Ferroli', 'ferroli.png', 1),
+(20, 'Smeg', 'smeg.png', 1),
+(21, 'iPhone', 'iphone.png', 1),
+(22, 'OPPO\r\n', 'oppo.png', 1),
+(23, 'vivo', 'vivo.png', 1),
+(24, 'SunHouse', 'sunhouse.png', 1),
+(25, 'realme', 'realme.png', 1),
+(26, 'beko', 'beko.png', 1),
+(27, 'HITACHI', 'hitachi.png', 1),
+(28, 'Bear', 'bear.png', 1),
+(29, 'CRYSTAL', 'crystal.png', 1),
+(30, 'LOCK&LOCK', 'lockvslock.png', 1),
+(31, 'CUCKOO', 'cuckoo.png', 1),
+(32, 'hp', 'hp.png', 1),
+(33, 'Lenovo', 'lenovo.png', 1),
+(34, 'MacBook', 'macbook.png', 1),
+(35, 'msi', 'msi.png', 1),
+(36, 'DELL', 'dell.png', 1),
+(37, 'ASUS', 'asus.png', 1),
+(38, 'iPad', 'ipad.png', 1),
+(39, 'Masstel', 'masstel.png', 1),
+(40, 'Hafele', 'hafele.png', 1),
+(41, 'DAIKIN', 'daikin.png', 1),
+(42, 'Nagakawa', 'nagakawa.png', 1),
+(43, 'Acer', 'acer.png', 1);
 
 -- --------------------------------------------------------
 

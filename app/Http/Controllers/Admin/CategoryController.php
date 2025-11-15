@@ -14,17 +14,19 @@ class CategoryController extends Controller
      */
     public function index(Request $request)
     {
-        // Chỉ lấy danh mục chưa bị xóa (category_is_display != 2)
-        $query = Category::where('category_is_display', '!=', 2);
-
-        // Tìm kiếm
-        if ($request->filled('search')) {
-            $query->where('category_name', 'like', '%' . $request->search . '%');
-        }
+        $query = Category::query();
 
         // Lọc theo trạng thái (0: ẩn, 1: hiển thị)
         if ($request->filled('status')) {
             $query->where('category_is_display', $request->status);
+        } else {
+            // Mặc định chỉ hiển thị danh mục đang hiển thị (status = 1)
+            $query->where('category_is_display', 1);
+        }
+
+        // Tìm kiếm
+        if ($request->filled('search')) {
+            $query->where('category_name', 'like', '%' . $request->search . '%');
         }
 
         // Lọc theo loại
@@ -150,18 +152,34 @@ class CategoryController extends Controller
     }
 
     /**
-     * Remove the category (soft delete).
+     * Ẩn danh mục (soft delete).
      */
     public function destroy($id)
     {
         $category = Category::findOrFail($id);
 
-        // Soft delete: đặt category_is_display = 2
+        // Ẩn danh mục: đặt category_is_display = 0
         $category->update([
-            'category_is_display' => 2
+            'category_is_display' => 0
         ]);
 
         return redirect()->route('admin.categories.index')
-                        ->with('success', 'Xóa danh mục thành công!');
+                        ->with('success', 'Đã ẩn danh mục!');
+    }
+
+    /**
+     * Khôi phục danh mục đã ẩn.
+     */
+    public function restore($id)
+    {
+        $category = Category::findOrFail($id);
+
+        // Hiển thị lại danh mục: đặt category_is_display = 1
+        $category->update([
+            'category_is_display' => 1
+        ]);
+
+        return redirect()->route('admin.categories.index')
+                        ->with('success', 'Đã khôi phục danh mục!');
     }
 }

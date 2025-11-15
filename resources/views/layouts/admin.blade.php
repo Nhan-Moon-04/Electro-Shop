@@ -79,10 +79,10 @@
                     </a>
                     
                     {{-- Orders --}}
-                    <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10 transition opacity-50 cursor-not-allowed">
+                    <a href="{{ route('admin.orders.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10 transition {{ request()->routeIs('admin.orders.*') ? 'bg-white/20' : '' }}">
                         <i class="fas fa-shopping-cart w-5"></i>
                         <span>Đơn hàng</span>
-                        <span class="text-xs">(Đang phát triển)</span>
+                       
                     </a>
                     
                     {{-- Users --}}
@@ -93,10 +93,9 @@
                     </a>
                     
                     {{-- Suppliers --}}
-                    <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10 transition opacity-50 cursor-not-allowed">
+                    <a href="{{ route('admin.suppliers.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10 transition {{ request()->routeIs('admin.suppliers.*') ? 'bg-white/20' : '' }}">
                         <i class="fas fa-truck w-5"></i>
-                        <span>Nhà cung cấp</span>
-                        <span class="text-xs">(Đang phát triển)</span>
+                        <span>Nhà cung cấp</span> 
                     </a>
                     
                     {{-- Discounts --}}

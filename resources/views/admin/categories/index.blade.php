@@ -101,13 +101,23 @@
                         <a href="{{ route('admin.categories.edit', $category->category_id) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg transition">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <form action="{{ route('admin.categories.destroy', $category->category_id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa danh mục này?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg transition">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
+                        
+                        @if($category->category_is_display == 1)
+                            <form action="{{ route('admin.categories.destroy', $category->category_id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa danh mục này?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg transition">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        @else
+                            <form action="{{ route('admin.categories.restore', $category->category_id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition" title="Hiển thị">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 </td>
             </tr>

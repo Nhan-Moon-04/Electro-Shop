@@ -32,4 +32,27 @@ class Order extends Model
         'order_status'
     ];
 
+    // Quan hệ với Customer
+    public function customer()
+    {
+        return $this->belongsTo(Customer::class, 'customer_id', 'customer_id');
+    }
+
+    // Quan hệ với Staff
+    public function staff()
+    {
+        return $this->belongsTo(Staff::class, 'staff_id', 'staff_id');
+    }
+
+    // Quan hệ với PayingMethod
+    public function payingMethod()
+    {
+        return $this->belongsTo(PayingMethod::class, 'paying_method_id', 'paying_method_id');
+    }
+
+    // Quan hệ với OrderDetails
+    public function orderDetails()
+    {
+        return $this->hasMany(OrderDetail::class, 'order_id', 'order_id');
+    }
 }

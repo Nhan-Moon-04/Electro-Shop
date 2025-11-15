@@ -19,9 +19,15 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        // Chỉ lấy sản phẩm chưa bị xóa (product_is_display != 2)
-        $query = Product::with(['category', 'supplier', 'variants', 'images'])
-                       ->where('product_is_display', '!=', 2);
+        $query = Product::with(['category', 'supplier', 'variants', 'images']);
+
+        // Lọc theo trạng thái (0: ẩn, 1: hiển thị)
+        if ($request->filled('status')) {
+            $query->where('product_is_display', $request->status);
+        } else {
+            // Mặc định chỉ hiển thị sản phẩm đang hiển thị (status = 1)
+            $query->where('product_is_display', 1);
+        }
 
         // Tìm kiếm
         if ($request->filled('search')) {
@@ -33,20 +39,12 @@ class ProductController extends Controller
             $query->where('category_id', $request->category);
         }
 
-        // Lọc theo trạng thái (0: ẩn, 1: hiển thị)
-        if ($request->filled('status')) {
-            $query->where('product_is_display', $request->status);
-        }
-
         $products = $query->orderBy('product_id', 'desc')->paginate(10);
         $categories = Category::where('category_is_display', 1)->get();
 
         return view('admin.products.index', compact('products', 'categories'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $categories = Category::where('category_is_display', 1)->get();
@@ -55,9 +53,7 @@ class ProductController extends Controller
         return view('admin.products.create', compact('categories', 'suppliers'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -303,15 +299,15 @@ class ProductController extends Controller
     }
 
     /**
-     * Soft delete - Ẩn sản phẩm thay vì xóa hoàn toàn
+     * Ẩn sản phẩm (soft delete)
      */
     public function destroy($id)
     {
         try {
             $product = Product::findOrFail($id);
             
-            // Đánh dấu là đã xóa (2 = deleted)
-            $product->update(['product_is_display' => 2]);
+            // Ẩn sản phẩm: đặt product_is_display = 0
+            $product->update(['product_is_display' => 0]);
             
             // Ẩn tất cả variants
             $product->variants()->update(['product_variant_is_display' => 0]);
@@ -319,30 +315,34 @@ class ProductController extends Controller
             // Ẩn tất cả images
             $product->images()->update(['image_is_display' => 0]);
 
-            return redirect()->route('admin.products.index')->with('success', 'Sản phẩm đã được ẩn!');
+            return redirect()->route('admin.products.index')->with('success', 'Đã ẩn sản phẩm!');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Có lỗi xảy ra: ' . $e->getMessage()]);
         }
     }
 
     /**
-     * Khôi phục sản phẩm đã xóa
+     * Khôi phục sản phẩm đã ẩn
+     */
+    /**
+     * Khôi phục sản phẩm đã ẩn
      */
     public function restore($id)
     {
         try {
             $product = Product::findOrFail($id);
             
-            // Khôi phục sản phẩm
+            // Hiển thị lại sản phẩm: đặt product_is_display = 1
             $product->update(['product_is_display' => 1]);
             
-            // Khôi phục variants
+            // Hiển thị lại variants
             $product->variants()->update(['product_variant_is_display' => 1]);
             
-            // Khôi phục images
+            // Hiển thị lại images
             $product->images()->update(['image_is_display' => 1]);
 
-            return redirect()->route('admin.products.index')->with('success', 'Sản phẩm đã được khôi phục!');
+            return redirect()->route('admin.products.index')
+                            ->with('success', 'Đã khôi phục sản phẩm!');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Có lỗi xảy ra: ' . $e->getMessage()]);
         }

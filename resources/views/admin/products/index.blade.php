@@ -104,13 +104,23 @@
                         <a href="{{ route('admin.products.edit', $product->product_id) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded-lg transition">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <form action="{{ route('admin.products.destroy', $product->product_id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg transition">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
+                        
+                        @if($product->product_is_display == 1)
+                            <form action="{{ route('admin.products.destroy', $product->product_id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa sản phẩm này?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg transition">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        @else
+                            <form action="{{ route('admin.products.restore', $product->product_id) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg transition" title="Hiển thị">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </form>
+                        @endif
                     </div>
                 </td>
             </tr>
