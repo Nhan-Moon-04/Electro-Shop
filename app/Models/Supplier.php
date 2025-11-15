@@ -16,7 +16,8 @@ class Supplier extends Model
 
     protected $fillable = [
         'supplier_name',
-        'supplier_logo'
+        'supplier_logo',
+        'supplier_is_display'
     ];
 
     // Quan hệ với Products

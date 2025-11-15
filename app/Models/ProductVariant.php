@@ -44,4 +44,9 @@ class ProductVariant extends Model
     {
         return $this->belongsTo(Discount::class, 'discount_id', 'discount_id');
     }
+    // Quan hệ với OrderDetails
+public function orderDetails()
+{
+    return $this->hasMany(OrderDetail::class, 'product_variant_id', 'product_variant_id');
+}
 }
