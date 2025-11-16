@@ -294,9 +294,65 @@
     });
 
     function addToCart(productId) {
-        // AJAX call to add product to cart
-        console.log('Adding product to cart:', productId);
-        // Implement cart functionality here
+        const token = localStorage.getItem('auth_token');
+        
+        if (!token) {
+            alert('Vui lòng đăng nhập để thêm vào giỏ hàng!');
+            window.location.href = '/login';
+            return;
+        }
+
+        // Get first variant ID from product
+        fetch(`/api/products/${productId}`, {
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(productData => {
+            if (!productData.variants || productData.variants.length === 0) {
+                alert('Sản phẩm tạm hết hàng!');
+                return;
+            }
+
+            const firstVariant = productData.variants[0];
+            
+            // Add to cart
+            fetch('/api/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    product_variant_id: firstVariant.product_variant_id,
+                    quantity: 1
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show notification
+                    alert('✓ Đã thêm sản phẩm vào giỏ hàng!');
+                    
+                    // Update cart count
+                    if (typeof updateCartCount === 'function') {
+                        updateCartCount();
+                    }
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra!');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Không thể thêm vào giỏ hàng!');
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching product:', error);
+            alert('Không thể tải thông tin sản phẩm!');
+        });
     }
 </script>
 @endpush

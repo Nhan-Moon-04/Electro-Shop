@@ -20,14 +20,17 @@ class HomeController extends Controller
 
         // Featured Products - Flash Sale (có discount)
         $featuredProducts = Product::query()
-            ->with(['category', 'images' => function($query) {
-                $query->where('image_is_display', 1)->orderBy('image_id', 'asc');
-            }])
+            ->with([
+                'category',
+                'images' => function ($query) {
+                    $query->where('image_is_display', 1)->orderBy('image_id', 'asc');
+                }
+            ])
             ->withMin('variants as min_price', 'product_variant_price')
-            ->whereHas('variants', function($query) {
+            ->whereHas('variants', function ($query) {
                 $query->whereNotNull('discount_id')
-                      ->where('product_variant_is_stock', 1)
-                      ->where('product_variant_is_display', 1);
+                    ->where('product_variant_is_stock', 1)
+                    ->where('product_variant_is_display', 1);
             })
             ->where('product_is_display', 1)
             ->orderByDesc('product_view_count')
@@ -36,14 +39,17 @@ class HomeController extends Controller
 
         // Bestseller Products
         $bestsellerProducts = Product::query()
-            ->with(['category', 'images' => function($query) {
-                $query->where('image_is_display', 1)->orderBy('image_id', 'asc');
-            }])
+            ->with([
+                'category',
+                'images' => function ($query) {
+                    $query->where('image_is_display', 1)->orderBy('image_id', 'asc');
+                }
+            ])
             ->withMin('variants as min_price', 'product_variant_price')
-            ->whereHas('variants', function($query) {
+            ->whereHas('variants', function ($query) {
                 $query->where('product_variant_is_bestseller', 1)
-                      ->where('product_variant_is_stock', 1)
-                      ->where('product_variant_is_display', 1);
+                    ->where('product_variant_is_stock', 1)
+                    ->where('product_variant_is_display', 1);
             })
             ->where('product_is_display', 1)
             ->orderByDesc('product_view_count')
@@ -52,13 +58,16 @@ class HomeController extends Controller
 
         // New Products
         $newProducts = Product::query()
-            ->with(['category', 'images' => function($query) {
-                $query->where('image_is_display', 1)->orderBy('image_id', 'asc');
-            }])
+            ->with([
+                'category',
+                'images' => function ($query) {
+                    $query->where('image_is_display', 1)->orderBy('image_id', 'asc');
+                }
+            ])
             ->withMin('variants as min_price', 'product_variant_price')
-            ->whereHas('variants', function($query) {
+            ->whereHas('variants', function ($query) {
                 $query->where('product_variant_is_stock', 1)
-                      ->where('product_variant_is_display', 1);
+                    ->where('product_variant_is_display', 1);
             })
             ->where('product_is_display', 1)
             ->orderByDesc('product_id')
@@ -70,7 +79,7 @@ class HomeController extends Controller
 
         return view('home', compact(
             'categories',
-            'featuredProducts', 
+            'featuredProducts',
             'bestsellerProducts',
             'newProducts',
             'suppliers'

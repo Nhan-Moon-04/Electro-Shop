@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 // Import các controller chúng ta sẽ tạo ở bước sau
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ForgotPasswordController;
+use App\Http\Controllers\Api\CartController;
+use App\Http\Controllers\Api\ProductController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,5 +43,20 @@ Route::group([
         Route::post('/refresh', [AuthController::class, 'refresh']); // Làm mới token
     });
 });
+
+// Cart Routes
+Route::group([
+    'prefix' => 'cart',
+    'middleware' => 'auth:api'
+], function () {
+    Route::get('/count', [CartController::class, 'getCartCount']);
+    Route::get('/', [CartController::class, 'getCart']);
+    Route::post('/add', [CartController::class, 'addToCart']);
+    Route::put('/update', [CartController::class, 'updateQuantity']);
+    Route::delete('/remove', [CartController::class, 'removeItem']);
+});
+
+// Product Routes
+Route::get('/products/{id}', [ProductController::class, 'show']);
 
 

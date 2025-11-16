@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\ActivationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\VNPayController;
@@ -37,7 +38,8 @@ Route::get('/products/{id}', [ProductController::class, 'show'])->name('products
 
 Route::get('/category/{id}', [ProductController::class, 'category'])->name('products.category')->where('id', '[0-9]+');
 
-// Giỏ hàng đã bị loại bỏ - chỉ dùng "Mua ngay"
+// Giỏ hàng
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 
 // Thanh toán
 Route::get('/checkout', [PaymentController::class, 'showCheckout'])->name('checkout.index');
@@ -125,24 +127,24 @@ Route::prefix('vnpay')->group(function () {
 // Admin Routes (Tạm thời không có middleware để test)
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Products Management
     Route::resource('products', AdminProductController::class);
-    
+
     // Product Image Delete
     Route::delete('/products/images/{image}', [AdminProductController::class, 'deleteImage'])->name('products.images.delete');
-    
+
     // Product Restore
     Route::post('/products/{id}/restore', [AdminProductController::class, 'restore'])->name('products.restore');
-    
+
     // Categories Management
     Route::resource('categories', AdminCategoryController::class);
     Route::post('/categories/{id}/restore', [AdminCategoryController::class, 'restore'])->name('categories.restore');
-    
+
     // Suppliers Management
     Route::resource('suppliers', AdminSupplierController::class);
     Route::post('/suppliers/{id}/restore', [AdminSupplierController::class, 'restore'])->name('suppliers.restore');
-    
+
     // Routes quản lý đơn hàng
     Route::prefix('orders')->name('orders.')->group(function () {
         Route::get('/', [OrderController::class, 'index'])->name('index');
@@ -156,7 +158,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     });
 
     // Settings
-    Route::get('/settings', function() {
+    Route::get('/settings', function () {
         return view('admin.settings');
     })->name('settings');
 });

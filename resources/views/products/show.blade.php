@@ -152,19 +152,24 @@
                     </div>
 
                     <!-- Action Buttons -->
-                    <div class="flex space-x-4 mb-6">
-                        <button class="btn-outline py-4 px-6">
-                            <i class="fas fa-heart text-xl"></i>
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <button id="addToCartBtn" class="btn-primary py-4 text-lg font-bold">
+                            <i class="fas fa-shopping-cart mr-2"></i>Thêm vào giỏ hàng
                         </button>
-                        <button class="btn-outline py-4 px-6">
-                            <i class="fas fa-share-alt text-xl"></i>
+                        <button id="buyNowBtn"
+                            class="bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-lg transition text-lg">
+                            <i class="fas fa-bolt mr-2"></i>Mua ngay
                         </button>
                     </div>
 
-                    <button id="buyNowBtn"
-                        class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-lg transition text-lg">
-                        <i class="fas fa-bolt mr-2"></i>Mua ngay - Giao hàng trong 1 giờ
-                    </button> <!-- Additional Info -->
+                    <div class="flex space-x-4 mb-6">
+                        <button class="btn-outline py-3 px-6 flex-1">
+                            <i class="fas fa-heart mr-2"></i>Yêu thích
+                        </button>
+                        <button class="btn-outline py-3 px-6 flex-1">
+                            <i class="fas fa-share-alt mr-2"></i>Chia sẻ
+                        </button>
+                    </div> <!-- Additional Info -->
                     <div class="mt-6 bg-blue-50 rounded-lg p-4">
                         <ul class="space-y-2 text-sm">
                             <li class="flex items-center">
@@ -429,6 +434,73 @@
             });
         }
 
+        // Add to Cart functionality
+        const addToCartBtn = document.getElementById('addToCartBtn');
+
+        if (addToCartBtn) {
+            addToCartBtn.addEventListener('click', function () {
+                const token = localStorage.getItem('auth_token');
+
+                if (!token) {
+                    alert('Vui lòng đăng nhập để thêm vào giỏ hàng!');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const productVariantId = 44; // TODO: Get from selected variant
+                const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+
+                // Show loading state
+                const originalHTML = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang thêm...';
+                this.disabled = true;
+
+                fetch('/api/cart/add', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        product_variant_id: productVariantId,
+                        quantity: quantity
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show success
+                            this.innerHTML = '<i class="fas fa-check mr-2"></i>Đã thêm!';
+                            this.classList.add('bg-green-500', 'hover:bg-green-600');
+                            this.classList.remove('bg-primary', 'hover:bg-primary-600');
+
+                            setTimeout(() => {
+                                this.innerHTML = originalHTML;
+                                this.classList.remove('bg-green-500', 'hover:bg-green-600');
+                                this.classList.add('bg-primary', 'hover:bg-primary-600');
+                                this.disabled = false;
+                            }, 2000);
+
+                            // Update cart count
+                            if (typeof updateCartCount === 'function') {
+                                updateCartCount();
+                            }
+                        } else {
+                            alert(data.message || 'Có lỗi xảy ra!');
+                            this.innerHTML = originalHTML;
+                            this.disabled = false;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Không thể thêm vào giỏ hàng!');
+                        this.innerHTML = originalHTML;
+                        this.disabled = false;
+                    });
+            });
+        }
+
         // Buy Now button functionality
         const buyNowBtn = document.getElementById('buyNowBtn');
 
@@ -447,7 +519,5 @@
                 window.location.href = '/checkout?' + params.toString();
             });
         }
-
-        // Giỏ hàng đã bị loại bỏ - chỉ còn chức năng "Mua ngay"
     </script>
 @endpush
