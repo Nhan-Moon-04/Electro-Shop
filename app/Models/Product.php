@@ -12,10 +12,8 @@ class Product extends Model
     protected $table = 'products';
     protected $primaryKey = 'product_id';
     public $timestamps = false;
-    public $incrementing = false;
 
     protected $fillable = [
-        'product_id',
         'category_id',
         'supplier_id',
         'product_name',
@@ -38,23 +36,25 @@ class Product extends Model
         return $this->belongsTo(Supplier::class, 'supplier_id', 'supplier_id');
     }
 
+    public function images()
+    {
+        return $this->hasMany(ProductImg::class, 'product_id', 'product_id');
+    }
+
     public function variants()
     {
         return $this->hasMany(ProductVariant::class, 'product_id', 'product_id');
     }
 
-    public function images()
-    {
-        return $this->hasMany(ProductImg::class, 'product_id', 'product_id');
-    }
+ 
 
     public function details()
     {
         return $this->hasMany(ProductDetail::class, 'product_id', 'product_id');
     }
 
-    // Helper: Get giá thấp nhất
-    public function getMinPrice()
+    // Get discount through variants
+    public function getDiscountAttribute()
     {
         return $this->variants()->min('product_variant_price') ?? 0;
     }

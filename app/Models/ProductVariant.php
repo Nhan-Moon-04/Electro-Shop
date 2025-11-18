@@ -33,20 +33,13 @@ class ProductVariant extends Model
         'product_variant_is_display' => 'boolean',
     ];
 
-    // Quan hệ ngược lại với Product
     public function product()
     {
         return $this->belongsTo(Product::class, 'product_id', 'product_id');
     }
 
-    // Quan hệ với Discount (nếu có)
     public function discount()
     {
         return $this->belongsTo(Discount::class, 'discount_id', 'discount_id');
     }
-    // Quan hệ với OrderDetails
-public function orderDetails()
-{
-    return $this->hasMany(OrderDetail::class, 'product_variant_id', 'product_variant_id');
-}
 }

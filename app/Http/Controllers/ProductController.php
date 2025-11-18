@@ -114,26 +114,31 @@ class ProductController extends Controller
 
     public function show($id)
     {
-        $product = Product::query()
-            ->with([
-                'category',
-                'supplier',
-                'images' => function ($q) {
-                    $q->where('image_is_display', 1);
-                },
-                'variants' => function ($q) {
-                    $q->where('product_variant_is_stock', 1)
-                        ->where('product_variant_is_display', 1);
-                },
-                'details'
-            ])
+        $product = Product::with([
+            'images' => function($query) {
+                $query->where('image_is_display', 1);
+            },
+            'variants' => function($query) {
+                $query->with('discount') // Load discount through variants
+                      ->orderBy('product_variant_is_display', 'desc');
+            },
+            'supplier',
+            'details',
+            'category'
+        ])->findOrFail($id);
+        
+        // Get related products from same category
+        $relatedProducts = Product::with(['images', 'variants.discount'])
+            ->where('category_id', $product->category_id)
+            ->where('product_id', '!=', $id)
             ->where('product_is_display', 1)
-            ->findOrFail($id);
-
-        // Tăng view count
-        $product->increment('product_view_count');
-
-        return view('products.show', compact('product'));
+            ->limit(5)
+            ->get();
+        
+        $reviewCount = 0;
+        $rating = $product->product_rate ?? 0;
+        
+        return view('products.show', compact('product', 'relatedProducts', 'reviewCount', 'rating'));
     }
 
     public function category($categoryId)

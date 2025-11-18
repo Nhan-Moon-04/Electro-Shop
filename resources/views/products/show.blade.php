@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Chi tiết sản phẩm - ElectroShop')
+@section('title', $product->product_name . ' - ElectroShop')
 
 @section('content')
 
@@ -15,7 +15,7 @@
                     <li><a href="{{ route('products.index') }}" class="text-gray-600 hover:text-primary transition">Sản
                             phẩm</a></li>
                     <li><i class="fas fa-chevron-right text-gray-400 text-xs"></i></li>
-                    <li><span class="text-gray-800 font-medium">iPhone 15 Pro Max 256GB</span></li>
+                    <li><span class="text-gray-800 font-medium">{{ $product->product_name }}</span></li>
                 </ol>
             </nav>
         </div>
@@ -28,136 +28,196 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
                 <!-- Product Images -->
-                <div x-data="{ currentImage: 0, images: [1,2,3,4,5] }">
+                @php
+                    $totalImages = ($product->product_avt_img ? 1 : 0) + $product->images->count();
+                    
+                    // Lấy variant mặc định
+                    $selectedVariant = $product->variants->where('product_variant_is_display', 1)->first() 
+                                    ?? $product->variants->first();
+                    
+                    // Lấy discount từ variant
+                    $activeDiscount = $selectedVariant && $selectedVariant->discount ? $selectedVariant->discount : null;
+                @endphp
+                <div x-data="{ currentImage: 0, images: {{ $totalImages }} }">
                     <!-- Main Image -->
                     <div class="relative mb-4 rounded-lg overflow-hidden bg-gray-100">
-                        <span class="absolute top-4 left-4 badge-sale z-10">-20%</span>
-                        <span class="absolute top-4 right-4 badge-new z-10">MỚI</span>
-                        <template x-for="(image, index) in images" :key="index">
-                            <img x-show="currentImage === index"
-                                :src="'https://via.placeholder.com/600x600/FFFFFF/0066CC?text=Product+Image+' + (index + 1)"
-                                alt="Product Image" class="w-full h-96 object-contain">
-                        </template>
+                        @if($activeDiscount)
+                            <span class="absolute top-4 left-4 badge-sale z-10">-{{ $activeDiscount->discount_amount }}%</span>
+                        @endif
+                        @if($product->product_period == 'new')
+                            <span class="absolute top-4 right-4 badge-new z-10">MỚI</span>
+                        @endif
+                        
+                        @if($product->product_avt_img || $product->images->isNotEmpty())
+                            <!-- Main product image (product_avt_img) -->
+                            @if($product->product_avt_img)
+                                <img x-show="currentImage === 0"
+                                    src="{{ asset('imgs/product_image/P' . $product->product_id . '/' . $product->product_avt_img) }}"
+                                    alt="{{ $product->product_name }}"
+                                    class="w-full h-96 object-contain"
+                                    onerror="this.src='{{ asset('imgs/default.png') }}'">
+                            @endif
+                            
+                            <!-- Gallery images (image_name from product_imgs table) -->
+                            @foreach($product->images as $index => $image)
+                                <img x-show="currentImage === {{ $product->product_avt_img ? $index + 1 : $index }}"
+                                    src="{{ asset('imgs/product_image/P' . $product->product_id . '/' . $image->image_name) }}"
+                                    alt="{{ $product->product_name }}"
+                                    class="w-full h-96 object-contain"
+                                    onerror="this.src='{{ asset('imgs/default.png') }}'">
+                            @endforeach
+                        @else
+                            <img src="{{ asset('imgs/default.png') }}"
+                                alt="Chưa có ảnh"
+                                class="w-full h-96 object-contain bg-gray-200">
+                        @endif
 
                         <!-- Navigation Arrows -->
-                        <button @click="currentImage = currentImage > 0 ? currentImage - 1 : images.length - 1"
+                        @if($totalImages > 1)
+                        <button @click="currentImage = currentImage > 0 ? currentImage - 1 : images - 1"
                             class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center transition">
                             <i class="fas fa-chevron-left"></i>
                         </button>
-                        <button @click="currentImage = currentImage < images.length - 1 ? currentImage + 1 : 0"
+                        <button @click="currentImage = currentImage < images - 1 ? currentImage + 1 : 0"
                             class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center transition">
                             <i class="fas fa-chevron-right"></i>
                         </button>
+                        @endif
                     </div>
 
                     <!-- Thumbnail Images -->
+                    @if($totalImages > 1)
                     <div class="grid grid-cols-5 gap-2">
-                        <template x-for="(image, index) in images" :key="index">
-                            <button @click="currentImage = index"
-                                :class="currentImage === index ? 'border-primary border-2' : 'border-gray-300 border'"
+                        {{-- Main product image thumbnail (product_avt_img) --}}
+                        @if($product->product_avt_img)
+                            <button @click="currentImage = 0"
+                                :class="currentImage === 0 ? 'border-primary border-2' : 'border-gray-300 border'"
                                 class="rounded-lg overflow-hidden hover:border-primary transition">
-                                <img :src="'https://via.placeholder.com/150x150/FFFFFF/0066CC?text=Thumb+' + (index + 1)"
-                                    alt="Thumbnail" class="w-full h-20 object-cover">
+                                <img src="{{ asset('imgs/product_image/P' . $product->product_id . '/' . $product->product_avt_img) }}"
+                                    alt="Thumbnail"
+                                    class="w-full h-20 object-cover"
+                                    onerror="this.src='{{ asset('imgs/default.png') }}'">
                             </button>
-                        </template>
+                        @endif
+                        
+                        {{-- Gallery thumbnails (image_name) --}}
+                        @foreach($product->images as $index => $image)
+                            <button @click="currentImage = {{ $product->product_avt_img ? $index + 1 : $index }}"
+                                :class="currentImage === {{ $product->product_avt_img ? $index + 1 : $index }} ? 'border-primary border-2' : 'border-gray-300 border'"
+                                class="rounded-lg overflow-hidden hover:border-primary transition">
+                                <img src="{{ asset('imgs/product_image/P' . $product->product_id . '/' . $image->image_name) }}"
+                                    alt="Thumbnail"
+                                    class="w-full h-20 object-cover"
+                                    onerror="this.src='{{ asset('imgs/default.png') }}'">
+                            </button>
+                        @endforeach
                     </div>
+                    @endif
                 </div>
 
                 <!-- Product Details -->
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-800 mb-4">iPhone 15 Pro Max 256GB Titan Tự Nhiên</h1>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ $product->product_name }}</h1>
 
                     <!-- Rating & Brand -->
                     <div class="flex items-center space-x-4 mb-4 pb-4 border-b">
                         <div class="flex items-center">
                             <div class="flex text-yellow-400 text-lg mr-2">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star-half-alt"></i>
+                                @php
+                                    $rating = $product->product_rate ?? 0;
+                                    $fullStars = floor($rating);
+                                    $hasHalfStar = ($rating - $fullStars) >= 0.5;
+                                @endphp
+                                @for($i = 1; $i <= 5; $i++)
+                                    @if($i <= $fullStars)
+                                        <i class="fas fa-star"></i>
+                                    @elseif($i == $fullStars + 1 && $hasHalfStar)
+                                        <i class="fas fa-star-half-alt"></i>
+                                    @else
+                                        <i class="far fa-star"></i>
+                                    @endif
+                                @endfor
                             </div>
-                            <span class="text-gray-600">(4.8 - 256 đánh giá)</span>
+                            <span class="text-gray-600">({{ number_format($rating, 1) }} - {{ $reviewCount ?? 0 }} đánh giá)</span>
                         </div>
                         <span class="text-gray-400">|</span>
-                        <span class="text-gray-600"><strong>Thương hiệu:</strong> <a href="#"
-                                class="text-primary hover:underline">Apple</a></span>
+                        <span class="text-gray-600"><strong>Thương hiệu:</strong> 
+                            @if($product->supplier)
+                                <a href="#" class="text-primary hover:underline">{{ $product->supplier->supplier_name }}</a>
+                            @else
+                                <span>Chưa cập nhật</span>
+                            @endif
+                        </span>
                         <span class="text-gray-400">|</span>
-                        <span class="text-gray-600">Đã bán: <strong>1,234</strong></span>
+                        <span class="text-gray-600">Đã bán: <strong>{{ number_format($product->product_view_count ?? 0) }}</strong></span>
                     </div>
 
                     <!-- Price -->
                     <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                        @php
+                            $originalPrice = $selectedVariant ? $selectedVariant->product_variant_price : 0;
+                            
+                            // Tính giá sau giảm
+                            $finalPrice = $originalPrice;
+                            if($activeDiscount) {
+                                $finalPrice = $originalPrice - ($originalPrice * $activeDiscount->discount_amount / 100);
+                            }
+                        @endphp
                         <div class="flex items-baseline space-x-4 mb-2">
-                            <span class="text-4xl font-bold text-red-600">28.990.000₫</span>
-                            <span class="text-xl text-gray-400 line-through">34.990.000₫</span>
-                            <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">-20%</span>
+                            <span class="text-4xl font-bold text-red-600" id="finalPrice">{{ number_format($finalPrice, 0, ',', '.') }}₫</span>
+                            @if($activeDiscount)
+                                <span class="text-xl text-gray-400 line-through" id="originalPrice">{{ number_format($originalPrice, 0, ',', '.') }}₫</span>
+                                <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">-{{ $activeDiscount->discount_amount }}%</span>
+                            @endif
                         </div>
                         <p class="text-sm text-gray-600">Giá đã bao gồm 10% VAT</p>
                     </div>
 
                     <!-- Product Variants -->
-                    <div class="mb-6">
-                        <label class="block font-semibold mb-3">Dung lượng:</label>
-                        <div class="grid grid-cols-4 gap-3">
-                            <button
-                                class="border-2 border-primary bg-primary/10 text-primary rounded-lg py-2 px-4 font-medium hover:bg-primary hover:text-white transition">
-                                128GB
-                            </button>
-                            <button
-                                class="border-2 border-gray-300 rounded-lg py-2 px-4 font-medium hover:border-primary hover:text-primary transition">
-                                256GB
-                            </button>
-                            <button
-                                class="border-2 border-gray-300 rounded-lg py-2 px-4 font-medium hover:border-primary hover:text-primary transition">
-                                512GB
-                            </button>
-                            <button
-                                class="border-2 border-gray-300 rounded-lg py-2 px-4 font-medium hover:border-primary hover:text-primary transition">
-                                1TB
-                            </button>
+                    @if($product->variants->count() > 0)
+                        <div class="mb-6" x-data="{ selectedVariant: {{ $selectedVariant ? $selectedVariant->product_variant_id : 'null' }} }">
+                            <label class="block font-semibold mb-3">Dung lượng:</label>
+                            <div class="grid grid-cols-4 gap-3">
+                                @foreach($product->variants as $variant)
+                                    <button @click="selectedVariant = {{ $variant->product_variant_id }}"
+                                        :class="selectedVariant === {{ $variant->product_variant_id }} ? 'border-primary bg-primary/10 text-primary' : 'border-gray-300'"
+                                        class="border-2 rounded-lg py-2 px-4 font-medium hover:border-primary hover:text-primary transition variant-btn"
+                                        data-variant-id="{{ $variant->product_variant_id }}"
+                                        data-variant-price="{{ $variant->product_variant_price }}"
+                                        data-variant-available="{{ $variant->product_variant_available }}"
+                                        data-discount="{{ $variant->discount ? $variant->discount->discount_amount : 0 }}">
+                                        {{ $variant->product_variant_name }}
+                                    </button>
+                                @endforeach
+                            </div>
                         </div>
-                    </div>
-
-                    <div class="mb-6">
-                        <label class="block font-semibold mb-3">Màu sắc:</label>
-                        <div class="flex space-x-3">
-                            <button class="w-12 h-12 rounded-full border-2 border-primary bg-gray-300 relative">
-                                <i class="fas fa-check text-white absolute inset-0 flex items-center justify-center"></i>
-                            </button>
-                            <button
-                                class="w-12 h-12 rounded-full border-2 border-gray-300 bg-black hover:border-primary transition"></button>
-                            <button
-                                class="w-12 h-12 rounded-full border-2 border-gray-300 bg-blue-900 hover:border-primary transition"></button>
-                            <button
-                                class="w-12 h-12 rounded-full border-2 border-gray-300 bg-white hover:border-primary transition"></button>
-                        </div>
-                    </div>
+                    @endif
 
                     <!-- Quantity -->
                     <div class="mb-6">
                         <label class="block font-semibold mb-3">Số lượng:</label>
                         <div class="flex items-center space-x-4">
                             <div class="flex items-center border-2 border-gray-300 rounded-lg">
-                                <button class="px-4 py-2 hover:bg-gray-100 transition">
+                                <button id="minusBtn" class="px-4 py-2 hover:bg-gray-100 transition">
                                     <i class="fas fa-minus"></i>
                                 </button>
-                                <input type="number" value="1" min="1" class="w-16 text-center py-2 focus:outline-none">
-                                <button class="px-4 py-2 hover:bg-gray-100 transition">
+                                <input type="number" id="quantityInput" value="1" min="1" max="{{ $selectedVariant ? $selectedVariant->product_variant_available : 999 }}" class="w-16 text-center py-2 focus:outline-none">
+                                <button id="plusBtn" class="px-4 py-2 hover:bg-gray-100 transition">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
-                            <span class="text-gray-600">Còn <strong class="text-primary">48</strong> sản phẩm</span>
+                            <span class="text-gray-600">Còn <strong class="text-primary" id="availableQuantity">{{ $selectedVariant ? $selectedVariant->product_variant_available : 0 }}</strong> sản phẩm</span>
                         </div>
                     </div>
 
                     <!-- Action Buttons -->
                     <div class="grid grid-cols-2 gap-4 mb-4">
-                        <button id="addToCartBtn" class="btn-primary py-4 text-lg font-bold">
+                        <button id="addToCartBtn" class="btn-primary py-4 text-lg font-bold" data-variant-id="{{ $selectedVariant ? $selectedVariant->product_variant_id : '' }}">
                             <i class="fas fa-shopping-cart mr-2"></i>Thêm vào giỏ hàng
                         </button>
                         <button id="buyNowBtn"
-                            class="bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-lg transition text-lg">
+                            class="bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-lg transition text-lg"
+                            data-variant-id="{{ $selectedVariant ? $selectedVariant->product_variant_id : '' }}">
                             <i class="fas fa-bolt mr-2"></i>Mua ngay
                         </button>
                     </div>
@@ -169,7 +229,9 @@
                         <button class="btn-outline py-3 px-6 flex-1">
                             <i class="fas fa-share-alt mr-2"></i>Chia sẻ
                         </button>
-                    </div> <!-- Additional Info -->
+                    </div>
+                    
+                    <!-- Additional Info -->
                     <div class="mt-6 bg-blue-50 rounded-lg p-4">
                         <ul class="space-y-2 text-sm">
                             <li class="flex items-center">
@@ -212,7 +274,7 @@
                     <button @click="activeTab = 'reviews'"
                         :class="activeTab === 'reviews' ? 'border-primary text-primary' : 'border-transparent text-gray-600'"
                         class="px-6 py-4 font-semibold border-b-2 whitespace-nowrap hover:text-primary transition">
-                        Đánh giá (256)
+                        Đánh giá ({{ $reviewCount ?? 0 }})
                     </button>
                 </div>
             </div>
@@ -221,63 +283,25 @@
             <div class="p-6">
                 <!-- Description Tab -->
                 <div x-show="activeTab === 'description'" class="prose max-w-none">
-                    <h3 class="text-xl font-bold mb-4">Điểm nổi bật của iPhone 15 Pro Max</h3>
-                    <p class="mb-4">iPhone 15 Pro Max là chiếc smartphone cao cấp nhất trong dòng iPhone 15 Series của
-                        Apple. Với thiết kế khung titanium sang trọng, chip A17 Pro mạnh mẽ và camera 48MP ấn tượng.</p>
-
-                    <h4 class="text-lg font-bold mb-2">Thiết kế đột phá với khung titanium</h4>
-                    <p class="mb-4">Lần đầu tiên Apple sử dụng chất liệu titanium cấp hàng không cho khung máy, mang lại độ
-                        bền cao nhưng vẫn giữ được trọng lượng nhẹ.</p>
-
-                    <h4 class="text-lg font-bold mb-2">Hiệu năng đỉnh cao với chip A17 Pro</h4>
-                    <p class="mb-4">Chip A17 Pro được sản xuất trên tiến trình 3nm tiên tiến nhất, mang lại hiệu năng vượt
-                        trội và tiết kiệm điện năng tối ưu.</p>
-
-                    <h4 class="text-lg font-bold mb-2">Camera chuyên nghiệp</h4>
-                    <p class="mb-4">Hệ thống camera sau 3 ống kính với cảm biến chính 48MP, hỗ trợ zoom quang học 5x và
-                        nhiều tính năng chụp ảnh chuyên nghiệp.</p>
+                    {!! $product->product_description ?? '<p>Chưa có mô tả chi tiết cho sản phẩm này.</p>' !!}
                 </div>
 
                 <!-- Specifications Tab -->
                 <div x-show="activeTab === 'specifications'">
                     <table class="w-full">
                         <tbody class="divide-y">
-                            <tr>
-                                <td class="py-3 font-semibold bg-gray-50 px-4">Màn hình</td>
-                                <td class="py-3 px-4">6.7 inch, Super Retina XDR, 120Hz</td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 font-semibold bg-gray-50 px-4">Chip xử lý</td>
-                                <td class="py-3 px-4">Apple A17 Pro (3nm)</td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 font-semibold bg-gray-50 px-4">RAM</td>
-                                <td class="py-3 px-4">8GB</td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 font-semibold bg-gray-50 px-4">Bộ nhớ trong</td>
-                                <td class="py-3 px-4">256GB / 512GB / 1TB</td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 font-semibold bg-gray-50 px-4">Camera sau</td>
-                                <td class="py-3 px-4">48MP (chính) + 12MP (góc siêu rộng) + 12MP (telephoto 5x)</td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 font-semibold bg-gray-50 px-4">Camera trước</td>
-                                <td class="py-3 px-4">12MP TrueDepth</td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 font-semibold bg-gray-50 px-4">Pin</td>
-                                <td class="py-3 px-4">4422mAh, sạc nhanh 20W, sạc không dây 15W</td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 font-semibold bg-gray-50 px-4">Hệ điều hành</td>
-                                <td class="py-3 px-4">iOS 17</td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 font-semibold bg-gray-50 px-4">Trọng lượng</td>
-                                <td class="py-3 px-4">221g</td>
-                            </tr>
+                            @if($product->details && $product->details->count() > 0)
+                                @foreach($product->details as $detail)
+                                    <tr>
+                                        <td class="py-3 font-semibold bg-gray-50 px-4 w-1/3">{{ $detail->product_detail_name }}</td>
+                                        <td class="py-3 px-4">{{ $detail->product_detail_value }} {{ $detail->product_detail_unit }}</td>
+                                    </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td colspan="2" class="py-3 px-4 text-center text-gray-500">Chưa có thông số kỹ thuật</td>
+                                </tr>
+                            @endif
                         </tbody>
                     </table>
                 </div>
@@ -288,24 +312,28 @@
                     <div class="bg-gray-50 rounded-lg p-6 mb-6">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="text-center">
-                                <div class="text-5xl font-bold text-primary mb-2">4.8</div>
+                                <div class="text-5xl font-bold text-primary mb-2">{{ number_format($rating ?? 0, 1) }}</div>
                                 <div class="flex justify-center text-yellow-400 text-2xl mb-2">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star-half-alt"></i>
+                                    @for($i = 1; $i <= 5; $i++)
+                                        @if($i <= floor($rating ?? 0))
+                                            <i class="fas fa-star"></i>
+                                        @elseif($i == floor($rating ?? 0) + 1 && (($rating ?? 0) - floor($rating ?? 0)) >= 0.5)
+                                            <i class="fas fa-star-half-alt"></i>
+                                        @else
+                                            <i class="far fa-star"></i>
+                                        @endif
+                                    @endfor
                                 </div>
-                                <p class="text-gray-600">256 đánh giá</p>
+                                <p class="text-gray-600">{{ $reviewCount ?? 0 }} đánh giá</p>
                             </div>
                             <div class="md:col-span-2 space-y-2">
                                 @for($i = 5; $i >= 1; $i--)
                                     <div class="flex items-center">
                                         <span class="w-12">{{ $i }} <i class="fas fa-star text-yellow-400 text-sm"></i></span>
                                         <div class="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden mx-3">
-                                            <div class="h-full bg-yellow-400" style="width: {{ rand(60, 95) }}%"></div>
+                                            <div class="h-full bg-yellow-400" style="width: 0%"></div>
                                         </div>
-                                        <span class="w-12 text-gray-600">{{ rand(10, 150) }}</span>
+                                        <span class="w-12 text-gray-600">0</span>
                                     </div>
                                 @endfor
                             </div>
@@ -313,68 +341,29 @@
                     </div>
 
                     <!-- Reviews List -->
-                    <div class="space-y-6">
-                        @for($i = 1; $i <= 5; $i++)
-                            <div class="border-b pb-6">
-                                <div class="flex items-start space-x-4">
-                                    <img src="https://via.placeholder.com/60x60/0066CC/FFFFFF?text=U{{ $i }}" alt="User"
-                                        class="w-12 h-12 rounded-full">
-                                    <div class="flex-1">
-                                        <div class="flex items-center justify-between mb-2">
-                                            <div>
-                                                <h4 class="font-semibold">Nguyễn Văn A</h4>
-                                                <div class="flex text-yellow-400 text-sm">
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                    <i class="fas fa-star"></i>
-                                                </div>
-                                            </div>
-                                            <span class="text-sm text-gray-500">{{ rand(1, 30) }} ngày trước</span>
-                                        </div>
-                                        <p class="text-gray-700 mb-3">Sản phẩm rất tốt, đúng như mô tả. Camera chụp ảnh đẹp, pin
-                                            trâu. Shop giao hàng nhanh, đóng gói cẩn thận. Mình rất hài lòng!</p>
-                                        <div class="flex space-x-2 mb-3">
-                                            <img src="https://via.placeholder.com/100x100/FFFFFF/0066CC?text=Review"
-                                                alt="Review"
-                                                class="w-20 h-20 rounded-lg object-cover cursor-pointer hover:opacity-80">
-                                            <img src="https://via.placeholder.com/100x100/FFFFFF/0066CC?text=Review"
-                                                alt="Review"
-                                                class="w-20 h-20 rounded-lg object-cover cursor-pointer hover:opacity-80">
-                                            <img src="https://via.placeholder.com/100x100/FFFFFF/0066CC?text=Review"
-                                                alt="Review"
-                                                class="w-20 h-20 rounded-lg object-cover cursor-pointer hover:opacity-80">
-                                        </div>
-                                        <div class="flex items-center space-x-4 text-sm text-gray-600">
-                                            <button class="hover:text-primary transition"><i
-                                                    class="far fa-thumbs-up mr-1"></i>Hữu ích ({{ rand(5, 50) }})</button>
-                                            <button class="hover:text-primary transition"><i class="far fa-comment mr-1"></i>Trả
-                                                lời</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endfor
-                    </div>
-
-                    <!-- Load More -->
-                    <div class="text-center mt-6">
-                        <button class="btn-outline">Xem thêm đánh giá</button>
+                    <div class="text-center py-8 text-gray-500">
+                        Chưa có đánh giá nào cho sản phẩm này
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Related Products -->
+        @if(isset($relatedProducts) && $relatedProducts->count() > 0)
         <section>
             <h2 class="text-2xl font-bold mb-6">Sản phẩm liên quan</h2>
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                @for($i = 1; $i <= 5; $i++)
+                @foreach($relatedProducts as $relatedProduct)
                     <div class="product-card group">
                         <div class="relative">
-                            <img src="https://via.placeholder.com/300x300/FFFFFF/0066CC?text=Related+{{ $i }}" alt="Product"
-                                class="w-full h-48 object-cover">
+                            @if($relatedProduct->product_avt_img)
+                                <img src="{{ asset('imgs/product_image/P' . $relatedProduct->product_id . '/' . $relatedProduct->product_avt_img) }}" 
+                                     alt="{{ $relatedProduct->product_name }}"
+                                     class="w-full h-48 object-cover"
+                                     onerror="this.src='{{ asset('imgs/default.png') }}'">
+                            @else
+                                <img src="{{ asset('imgs/default.png') }}" alt="No image" class="w-full h-48 object-cover">
+                            @endif
                             <button
                                 class="absolute top-2 right-2 w-10 h-10 bg-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition hover:bg-primary hover:text-white">
                                 <i class="fas fa-heart"></i>
@@ -382,22 +371,24 @@
                         </div>
                         <div class="p-4">
                             <h3 class="font-semibold text-gray-800 mb-2 line-clamp-2 group-hover:text-primary transition">
-                                Sản phẩm tương tự số {{ $i }}
+                                <a href="{{ route('products.show', $relatedProduct->product_id) }}">{{ $relatedProduct->product_name }}</a>
                             </h3>
                             <div class="flex items-center mb-2">
                                 <div class="flex text-yellow-400 text-sm">
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="fas fa-star"></i>
-                                    <i class="far fa-star"></i>
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <i class="fas fa-star"></i>
+                                    @endfor
                                 </div>
-                                <span class="text-gray-500 text-sm ml-2">({{ rand(10, 200) }})</span>
+                                <span class="text-gray-500 text-sm ml-2">({{ $relatedProduct->product_rate ?? 0 }})</span>
                             </div>
                             <div class="flex items-center justify-between">
                                 <div>
+                                    @php
+                                        $variant = $relatedProduct->variants->first();
+                                        $price = $variant ? $variant->product_variant_price : 0;
+                                    @endphp
                                     <p class="text-primary font-bold text-lg">
-                                        {{ number_format(rand(20, 35) * 990000, 0, ',', '.') }}₫
+                                        {{ number_format($price, 0, ',', '.') }}₫
                                     </p>
                                 </div>
                                 <button class="bg-primary text-white w-10 h-10 rounded-lg hover:bg-primary-600 transition">
@@ -406,9 +397,10 @@
                             </div>
                         </div>
                     </div>
-                @endfor
+                @endforeach
             </div>
         </section>
+        @endif
     </div>
 
 @endsection
@@ -416,9 +408,9 @@
 @push('scripts')
     <script>
         // Quantity controls
-        const minusBtn = document.querySelector('button:has(.fa-minus)');
-        const plusBtn = document.querySelector('button:has(.fa-plus)');
-        const quantityInput = document.querySelector('input[type="number"]');
+        const minusBtn = document.getElementById('minusBtn');
+        const plusBtn = document.getElementById('plusBtn');
+        const quantityInput = document.getElementById('quantityInput');
 
         if (minusBtn && plusBtn && quantityInput) {
             minusBtn.addEventListener('click', () => {
@@ -430,9 +422,55 @@
 
             plusBtn.addEventListener('click', () => {
                 const currentValue = parseInt(quantityInput.value);
-                quantityInput.value = currentValue + 1;
+                const maxValue = parseInt(quantityInput.max);
+                if (currentValue < maxValue) {
+                    quantityInput.value = currentValue + 1;
+                }
             });
         }
+
+        // Update variant selection and price
+        document.querySelectorAll('.variant-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const variantId = this.dataset.variantId;
+                const variantPrice = parseFloat(this.dataset.variantPrice);
+                const variantAvailable = this.dataset.variantAvailable;
+                const discount = parseFloat(this.dataset.discount);
+                
+                // Calculate prices
+                const originalPrice = variantPrice;
+                const finalPrice = discount > 0 ? originalPrice - (originalPrice * discount / 100) : originalPrice;
+                
+                // Update price display
+                const finalPriceEl = document.getElementById('finalPrice');
+                const originalPriceEl = document.getElementById('originalPrice');
+                
+                if (finalPriceEl) {
+                    finalPriceEl.textContent = new Intl.NumberFormat('vi-VN').format(finalPrice) + '₫';
+                }
+                
+                if (originalPriceEl && discount > 0) {
+                    originalPriceEl.textContent = new Intl.NumberFormat('vi-VN').format(originalPrice) + '₫';
+                }
+                
+                // Update buttons
+                document.getElementById('addToCartBtn').dataset.variantId = variantId;
+                document.getElementById('buyNowBtn').dataset.variantId = variantId;
+                
+                // Update available quantity
+                if (document.getElementById('availableQuantity')) {
+                    document.getElementById('availableQuantity').textContent = variantAvailable;
+                }
+                
+                // Update max quantity input
+                if (quantityInput) {
+                    quantityInput.max = variantAvailable;
+                    if (parseInt(quantityInput.value) > parseInt(variantAvailable)) {
+                        quantityInput.value = variantAvailable;
+                    }
+                }
+            });
+        });
 
         // Add to Cart functionality
         const addToCartBtn = document.getElementById('addToCartBtn');
@@ -447,8 +485,13 @@
                     return;
                 }
 
-                const productVariantId = 44; // TODO: Get from selected variant
+                const productVariantId = this.dataset.variantId;
                 const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+
+                if (!productVariantId) {
+                    alert('Vui lòng chọn phiên bản sản phẩm!');
+                    return;
+                }
 
                 // Show loading state
                 const originalHTML = this.innerHTML;
@@ -470,7 +513,6 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            // Show success
                             this.innerHTML = '<i class="fas fa-check mr-2"></i>Đã thêm!';
                             this.classList.add('bg-green-500', 'hover:bg-green-600');
                             this.classList.remove('bg-primary', 'hover:bg-primary-600');
@@ -482,7 +524,6 @@
                                 this.disabled = false;
                             }, 2000);
 
-                            // Update cart count
                             if (typeof updateCartCount === 'function') {
                                 updateCartCount();
                             }
@@ -506,11 +547,14 @@
 
         if (buyNowBtn) {
             buyNowBtn.addEventListener('click', function () {
-                // Get product variant ID (you'll need to set this based on your product data)
-                const productVariantId = 44; // You should get this dynamically from product data
+                const productVariantId = this.dataset.variantId;
                 const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
 
-                // Redirect to checkout with parameters
+                if (!productVariantId) {
+                    alert('Vui lòng chọn phiên bản sản phẩm!');
+                    return;
+                }
+
                 const params = new URLSearchParams({
                     product_variant_id: productVariantId,
                     quantity: quantity
