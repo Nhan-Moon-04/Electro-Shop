@@ -69,11 +69,12 @@
                 <!-- User Actions -->
                 <div class="flex items-center space-x-6">
                     <!-- Cart -->
-                    <a href="/cart" class="relative hover:text-primary transition">
+                    <a href="{{ route('cart.index') }}" class="relative hover:text-primary transition">
                         <i class="fas fa-shopping-cart text-2xl"></i>
-                        <span
-                            class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                            3
+                        <span id="cart-count"
+                            class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center"
+                            style="display: none;">
+                            0
                         </span>
                     </a>
 
@@ -154,37 +155,28 @@
 
                         <!-- Mega Menu -->
                         <div x-show="open" @mouseenter="open = true" @mouseleave="open = false" x-transition
-                            class="absolute left-0 mt-2 w-screen max-w-6xl bg-white rounded-lg shadow-xl p-6 z-50 -ml-32">
-                            <div class="grid grid-cols-4 gap-6">
-                                <div>
-                                    <h3 class="font-bold text-primary mb-3">Điện thoại & Tablet</h3>
-                                    <ul class="space-y-2 text-sm">
-                                        <li><a href="#" class="hover:text-primary transition">Điện thoại</a></li>
-                                        <li><a href="#" class="hover:text-primary transition">Tablet</a></li>
-                                    </ul>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-primary mb-3">Laptop & PC</h3>
-                                    <ul class="space-y-2 text-sm">
-                                        <li><a href="#" class="hover:text-primary transition">Laptop</a></li>
-                                        <li><a href="#" class="hover:text-primary transition">Màn hình</a></li>
-                                    </ul>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-primary mb-3">Thiết bị âm thanh</h3>
-                                    <ul class="space-y-2 text-sm">
-                                        <li><a href="#" class="hover:text-primary transition">Tivi</a></li>
-                                        <li><a href="#" class="hover:text-primary transition">Loa</a></li>
-                                    </ul>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-primary mb-3">Đồ gia dụng</h3>
-                                    <ul class="space-y-2 text-sm">
-                                        <li><a href="#" class="hover:text-primary transition">Máy giặt</a></li>
-                                        <li><a href="#" class="hover:text-primary transition">Tủ lạnh</a></li>
-                                        <li><a href="#" class="hover:text-primary transition">Máy lạnh</a></li>
-                                    </ul>
-                                </div>
+                            class="absolute left-0 mt-2 w-screen max-w-4xl bg-white rounded-lg shadow-xl p-6 z-50 -ml-32">
+                            <div class="grid grid-cols-4 gap-8">
+                                @php
+                                    $categoriesByType = $headerCategories->groupBy('categorry_type');
+                                @endphp
+
+                                @foreach($categoriesByType as $type => $categories)
+                                    <div>
+                                        <h3 class="font-bold text-gray-800 mb-3 pb-2 border-b border-gray-200">{{ $type }}
+                                        </h3>
+                                        <ul class="space-y-2">
+                                            @foreach($categories as $category)
+                                                <li>
+                                                    <a href="{{ route('products.category', $category->category_id) }}"
+                                                        class="text-sm text-gray-600 hover:text-primary transition block">
+                                                        {{ $category->category_name }}
+                                                    </a>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     </li>
@@ -339,6 +331,36 @@
             window.location.href = '/login';
         }
 
+        // Hàm cập nhật số lượng giỏ hàng
+        function updateCartCount() {
+            const token = localStorage.getItem('auth_token');
+            const cartCountElement = document.getElementById('cart-count');
+
+            if (!token || !cartCountElement) {
+                return;
+            }
+
+            fetch('/api/cart/count', {
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                    'Accept': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.count && data.count > 0) {
+                        cartCountElement.innerText = data.count;
+                        cartCountElement.style.display = 'flex';
+                    } else {
+                        cartCountElement.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching cart count:', error);
+                    cartCountElement.style.display = 'none';
+                });
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             const token = localStorage.getItem('auth_token');
             const guestMenu = document.getElementById('guest-menu');
@@ -356,6 +378,8 @@
                         if (data.id) {
                             userMenu.style.display = 'block';
                             document.getElementById('nav-user-name').innerText = data.name;
+                            // Update cart count after user is authenticated
+                            updateCartCount();
                         } else {
                             handleLogout();
                         }

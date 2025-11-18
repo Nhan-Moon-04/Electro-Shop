@@ -13,17 +13,21 @@ class ProductController extends Controller
         // Lấy categories cho sidebar filter
         $categories = Category::query()
             ->where('category_is_display', 1)
-            ->withCount(['products' => function($query) {
-                $query->where('product_is_display', 1);
-            }])
+            ->withCount([
+                'products' => function ($query) {
+                    $query->where('product_is_display', 1);
+                }
+            ])
             ->orderBy('category_name', 'asc')
             ->get();
 
         // Lấy suppliers cho sidebar filter  
         $suppliers = Supplier::query()
-            ->withCount(['products' => function($query) {
-                $query->where('product_is_display', 1);
-            }])
+            ->withCount([
+                'products' => function ($query) {
+                    $query->where('product_is_display', 1);
+                }
+            ])
             ->having('products_count', '>', 0)
             ->orderBy('supplier_name', 'asc')
             ->get();
@@ -33,13 +37,13 @@ class ProductController extends Controller
             ->with([
                 'category:category_id,category_name',
                 'supplier:supplier_id,supplier_name',
-                'images' => function($q) {
+                'images' => function ($q) {
                     $q->where('image_is_display', 1)->orderBy('image_id', 'asc');
                 },
-                'variants' => function($q) {
+                'variants' => function ($q) {
                     $q->where('product_variant_is_stock', 1)
-                      ->where('product_variant_is_display', 1)
-                      ->orderBy('product_variant_price', 'asc');
+                        ->where('product_variant_is_display', 1)
+                        ->orderBy('product_variant_price', 'asc');
                 }
             ])
             ->withMin('variants as min_price', 'product_variant_price')
@@ -78,7 +82,7 @@ class ProductController extends Controller
 
         // Filter theo rating
         if ($rating = $request->input('rating')) {
-            $query->where('product_rate', '>=', (int)$rating);
+            $query->where('product_rate', '>=', (int) $rating);
         }
 
         // Sort
@@ -94,7 +98,7 @@ class ProductController extends Controller
                 break;
             case 'bestseller':
                 $query->whereHas('variants', fn($q) => $q->where('product_variant_is_bestseller', 1))
-                      ->orderByDesc('product_view_count');
+                    ->orderByDesc('product_view_count');
                 break;
             case 'rating':
                 $query->orderByDesc('product_rate');
@@ -113,13 +117,13 @@ class ProductController extends Controller
         $product = Product::query()
             ->with([
                 'category',
-                'supplier', 
-                'images' => function($q) {
+                'supplier',
+                'images' => function ($q) {
                     $q->where('image_is_display', 1);
                 },
-                'variants' => function($q) {
+                'variants' => function ($q) {
                     $q->where('product_variant_is_stock', 1)
-                      ->where('product_variant_is_display', 1);
+                        ->where('product_variant_is_display', 1);
                 },
                 'details'
             ])
@@ -135,15 +139,48 @@ class ProductController extends Controller
     public function category($categoryId)
     {
         $category = Category::where('category_is_display', 1)->findOrFail($categoryId);
-        
+
+        // Lấy categories cho sidebar filter
+        $categories = Category::query()
+            ->where('category_is_display', 1)
+            ->withCount([
+                'products' => function ($query) {
+                    $query->where('product_is_display', 1);
+                }
+            ])
+            ->orderBy('category_name', 'asc')
+            ->get();
+
+        // Lấy suppliers cho sidebar filter  
+        $suppliers = Supplier::query()
+            ->withCount([
+                'products' => function ($query) {
+                    $query->where('product_is_display', 1);
+                }
+            ])
+            ->having('products_count', '>', 0)
+            ->orderBy('supplier_name', 'asc')
+            ->get();
+
         $products = Product::query()
-            ->with(['category', 'images', 'variants'])
+            ->with([
+                'category',
+                'supplier',
+                'images' => function ($q) {
+                    $q->where('image_is_display', 1)->orderBy('image_id', 'asc');
+                },
+                'variants' => function ($q) {
+                    $q->where('product_variant_is_stock', 1)
+                        ->where('product_variant_is_display', 1)
+                        ->orderBy('product_variant_price', 'asc');
+                }
+            ])
             ->withMin('variants as min_price', 'product_variant_price')
             ->where('category_id', $categoryId)
             ->where('product_is_display', 1)
             ->orderByDesc('product_id')
             ->paginate(12);
 
-        return view('products.category', compact('products', 'category'));
+        return view('products.index', compact('products', 'categories', 'suppliers', 'category'));
     }
 }
