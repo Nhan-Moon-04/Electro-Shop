@@ -6,9 +6,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-// use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
+use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable // Tạm bỏ implements JWTSubject
+class User extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable;
 
@@ -54,9 +54,8 @@ class User extends Authenticatable // Tạm bỏ implements JWTSubject
     {
         return $this->user_email;
     }
-    
+
     // JWT methods - uncomment khi cài đặt JWT package
-    /*
     public function getJWTIdentifier()
     {
         return $this->getKey();
@@ -69,5 +68,4 @@ class User extends Authenticatable // Tạm bỏ implements JWTSubject
             'email' => $this->user_email
         ];
     }
-    */
 }
