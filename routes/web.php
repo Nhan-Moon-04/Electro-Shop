@@ -124,8 +124,8 @@ Route::prefix('vnpay')->group(function () {
     Route::post('/generate-qr', [VNPayController::class, 'generateQR'])->name('vnpay.qr');
 });
 
-// Admin Routes (Tạm thời không có middleware để test)
-Route::prefix('admin')->name('admin.')->group(function () {
+// Admin Routes - Bảo vệ bằng middleware admin
+Route::prefix('admin')->middleware('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     // Products Management

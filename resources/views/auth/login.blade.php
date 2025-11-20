@@ -81,7 +81,15 @@
                     if (data.access_token) {
                         // Đăng nhập THÀNH CÔNG
                         localStorage.setItem('auth_token', data.access_token);
-                        window.location.href = '/';
+                        localStorage.setItem('user_info', JSON.stringify(data.user));
+                        localStorage.setItem('user_type', data.user_type);
+
+                        // Phân quyền redirect
+                        if (data.user_type === 'admin') {
+                            window.location.href = '/admin';
+                        } else {
+                            window.location.href = '/';
+                        }
                     } else {
                         // Đăng nhập THẤT BẠI
                         messageDiv.innerText = data.error || 'Email hoặc mật khẩu không đúng.';
