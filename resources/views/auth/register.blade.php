@@ -83,22 +83,42 @@
                     password_confirmation: document.getElementById('registerPasswordConfirmation').value
                 })
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message) { // Đăng ký thành công
+                .then(response => {
+                    return response.json().then(data => {
+                        return { data: data, status: response.status };
+                    });
+                })
+                .then(result => {
+                    const data = result.data;
+                    const status = result.status;
+
+                    if (status === 201 && data.message) { // Đăng ký thành công
                         messageDiv.innerText = data.message + ' Đang chuyển bạn đến trang đăng nhập...';
                         messageDiv.className = 'mb-4 p-4 rounded-lg text-green-700 bg-green-100';
                         messageDiv.style.display = 'block';
                         setTimeout(() => {
                             window.location.href = '/login'; // Chuyển sang trang login
                         }, 3000);
-                    } else if (data.errors) { // Có lỗi validation
-                        let errorMsg = '<ul>';
-                        for (let key in data.errors) {
-                            errorMsg += '<li>' + data.errors[key][0] + '</li>';
+                    } else if (status === 400 || data.errors) { // Có lỗi validation
+                        let errorMsg = '';
+                        if (data.errors) {
+                            errorMsg = '<ul>';
+                            for (let key in data.errors) {
+                                data.errors[key].forEach(error => {
+                                    errorMsg += '<li>' + error + '</li>';
+                                });
+                            }
+                            errorMsg += '</ul>';
+                        } else if (data.error) {
+                            errorMsg = data.error;
+                        } else {
+                            errorMsg = 'Có lỗi xảy ra, vui lòng thử lại.';
                         }
-                        errorMsg += '</ul>';
                         messageDiv.innerHTML = errorMsg;
+                        messageDiv.className = 'mb-4 p-4 rounded-lg text-red-700 bg-red-100';
+                        messageDiv.style.display = 'block';
+                    } else if (data.error) { // Lỗi khác
+                        messageDiv.innerText = data.error;
                         messageDiv.className = 'mb-4 p-4 rounded-lg text-red-700 bg-red-100';
                         messageDiv.style.display = 'block';
                     }

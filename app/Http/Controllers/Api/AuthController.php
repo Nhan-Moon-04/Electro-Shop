@@ -69,15 +69,24 @@ class AuthController extends Controller
     // đăng ký
     public function register(Request $request)
     {
-        // 1. Sửa Validator
+        // 1. Sửa Validator với custom messages
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|between:2,100',
             'email' => 'required|string|email|max:100|unique:users,user_email',
             'password' => 'required|string|confirmed|min:6',
+        ], [
+            'name.required' => 'Vui lòng nhập họ và tên.',
+            'name.between' => 'Họ và tên phải có từ 2 đến 100 ký tự.',
+            'email.required' => 'Vui lòng nhập email.',
+            'email.email' => 'Email không đúng định dạng.',
+            'email.unique' => 'Email này đã được đăng ký.',
+            'password.required' => 'Vui lòng nhập mật khẩu.',
+            'password.min' => 'Mật khẩu phải có ít nhất 6 ký tự.',
+            'password.confirmed' => 'Mật khẩu xác nhận không khớp.',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
+            return response()->json(['errors' => $validator->errors()], 400);
         }
 
 
