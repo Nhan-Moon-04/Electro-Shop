@@ -93,7 +93,12 @@ class PaymentController extends Controller
             return redirect()->back()->with('error', 'Vui lòng chọn sản phẩm');
         }
 
-        $variant = ProductVariant::with(['product'])->find($productVariantId);
+        $variant = ProductVariant::with([
+            'product.images' => function ($query) {
+                $query->where('image_is_display', 1);
+            }
+        ])->find($productVariantId);
+
         if (!$variant) {
             return redirect()->back()->with('error', 'Sản phẩm không tồn tại');
         }

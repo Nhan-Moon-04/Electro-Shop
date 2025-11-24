@@ -48,7 +48,7 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::where('category_is_display', 1)->get();
-        $suppliers = Supplier::all();
+        $suppliers = Supplier::where('supplier_is_display', 1)->get();
         
         return view('admin.products.create', compact('categories', 'suppliers'));
     }
@@ -83,7 +83,21 @@ class ProductController extends Controller
             'variants.*.price.required' => 'Giá không được để trống',
             'variants.*.available.required' => 'Số lượng không được để trống',
         ]);
+     $category = Category::where('category_id', $request->category_id)
+                           ->where('category_is_display', 1)
+                           ->first();
+        
+        if (!$category) {
+            return back()->withErrors(['category_id' => 'Danh mục này không khả dụng'])->withInput();
+        }
 
+        $supplier = Supplier::where('supplier_id', $request->supplier_id)
+                           ->where('supplier_is_display', 1)
+                           ->first();
+        
+        if (!$supplier) {
+            return back()->withErrors(['supplier_id' => 'Nhà cung cấp này không khả dụng'])->withInput();
+        }
         DB::beginTransaction();
         try {
             // Tạo product_id mới
@@ -173,7 +187,7 @@ class ProductController extends Controller
                          ->where('product_is_display', '!=', 2)
                          ->findOrFail($id);
         $categories = Category::where('category_is_display', 1)->get();
-        $suppliers = Supplier::all();
+        $suppliers = Supplier::where('supplier_is_display', 1)->get();
         
         return view('admin.products.edit', compact('product', 'categories', 'suppliers'));
     }
@@ -200,7 +214,21 @@ class ProductController extends Controller
             'variants.*.price' => 'required|numeric|min:0',
             'variants.*.available' => 'required|integer|min:0',
         ]);
+    $category = Category::where('category_id', $request->category_id)
+                           ->where('category_is_display', 1)
+                           ->first();
+        
+        if (!$category) {
+            return back()->withErrors(['category_id' => 'Danh mục này không khả dụng'])->withInput();
+        }
 
+        $supplier = Supplier::where('supplier_id', $request->supplier_id)
+                           ->where('supplier_is_display', 1)
+                           ->first();
+        
+        if (!$supplier) {
+            return back()->withErrors(['supplier_id' => 'Nhà cung cấp này không khả dụng'])->withInput();
+        }
         DB::beginTransaction();
         try {
             $productFolder = "P{$product->product_id}";

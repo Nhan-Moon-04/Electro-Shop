@@ -7,26 +7,25 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
-class User extends Authenticatable
+class Admin extends Authenticatable implements JWTSubject
 {
     use HasFactory, Notifiable;
 
-    protected $table = 'users';
-    protected $primaryKey = 'user_id';
+    protected $table = 'admin';
+    protected $primaryKey = 'admin_id';
     public $timestamps = false;
 
     protected $fillable = [
-        'user_name',
-        'user_email',
-        'user_password',
-        'user_register_date',
-        'user_active',
-        'user_login_name',
-        'user_phone',
+        'admin_name',
+        'admin_full_name',
+        'admin_email',
+        'admin_password',
+        'admin_role',
+        'admin_active',
     ];
 
     protected $hidden = [
-        'user_password',
+        'admin_password',
     ];
 
     // JWT Required Methods
@@ -43,11 +42,11 @@ class User extends Authenticatable
     // Laravel Auth Methods
     public function getAuthPassword()
     {
-        return $this->user_password;
+        return $this->admin_password;
     }
 
     public function getEmailForPasswordReset()
     {
-        return $this->user_email;
+        return $this->admin_email;
     }
 }

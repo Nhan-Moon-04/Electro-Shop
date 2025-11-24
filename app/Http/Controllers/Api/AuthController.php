@@ -8,18 +8,19 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
+use App\Models\Admin;
 use Carbon\Carbon;
 use App\Models\EmailVerificationToken;
 use App\Mail\AccountVerificationMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class AuthController extends Controller
 {
     // đăng nhập
     public function login(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string|min:6',
@@ -29,26 +30,39 @@ class AuthController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
+        $email = $request->input('email');
+        $password = $request->input('password');
+        $token = null;
+        $user = null;
+        $userType = null;
 
-        $credentials = [
-            'user_email' => $request->input('email'),
-            'password' => $request->input('password')
-        ];
+        // Thử đăng nhập với bảng admin trước
+        $admin = Admin::where('admin_email', $email)->first();
+        if ($admin && Hash::check($password, $admin->admin_password)) {
+            if (!$admin->admin_active) {
+                return response()->json(['error' => 'Tài khoản admin đã bị vô hiệu hóa'], 403);
+            }
+            $token = JWTAuth::fromUser($admin);
+            $user = $admin;
+            $userType = 'admin';
+        } else {
+            // Nếu không phải admin, thử đăng nhập với bảng user
+            $normalUser = User::where('user_email', $email)->first();
+            if ($normalUser && Hash::check($password, $normalUser->user_password)) {
+                if (!$normalUser->user_active) {
+                    return response()->json(['error' => 'Tài khoản chưa được xác nhận email. Vui lòng kiểm tra email để xác nhận.'], 403);
+                }
+                $token = JWTAuth::fromUser($normalUser);
+                $user = $normalUser;
+                $userType = 'user';
+            }
+        }
 
-        // 3. Tiến hành attempt với credentials đã sửa
-        if (!$token = auth('api')->attempt($credentials)) {
+        if (!$token) {
             return response()->json(['error' => 'Email hoặc mật khẩu không đúng'], 401);
         }
 
-        // Nếu user chưa active (chưa xác nhận email) thì chặn login
-        $user = auth('api')->user();
-        if ($user && isset($user->user_active) && !$user->user_active) {
-            // logout to invalidate token
-            auth('api')->logout();
-            return response()->json(['error' => 'Tài khoản chưa được xác nhận email. Vui lòng kiểm tra email để xác nhận.'], 403);
-        }
-
-        return $this->createNewToken($token);
+        return $this->createNewToken($token, $user, $userType);
     }
 
 
@@ -107,7 +121,7 @@ class AuthController extends Controller
     // đăng xuất
     public function logout()
     {
-        auth('api')->logout();
+        JWTAuth::invalidate(JWTAuth::getToken());
         return response()->json(['message' => 'Đăng xuất thành công']);
     }
 
@@ -115,24 +129,29 @@ class AuthController extends Controller
     // refresh token
     public function refresh()
     {
-        return $this->createNewToken(auth('api')->refresh());
+        $token = JWTAuth::refresh(JWTAuth::getToken());
+        $user = JWTAuth::user();
+        $userType = $user instanceof Admin ? 'admin' : 'user';
+        return $this->createNewToken($token, $user, $userType);
     }
 
     // thông tin user
     public function userProfile()
     {
-
-        return response()->json($this->getFormattedUser(auth('api')->user()));
+        $user = JWTAuth::user();
+        return response()->json($this->getFormattedUser($user));
     }
 
 
-    protected function createNewToken($token)
+    protected function createNewToken($token, $user, $userType)
     {
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 60,
-            'user' => $this->getFormattedUser(auth('api')->user())
+            'expires_in' => config('jwt.ttl') * 60,
+            'user' => $this->getFormattedUser($user),
+            'user_type' => $userType,
+            'redirect_url' => $userType === 'admin' ? '/admin' : '/'
         ]);
     }
 
@@ -143,11 +162,22 @@ class AuthController extends Controller
             return null;
         }
 
-        return [
-            'id' => $user->user_id,
-            'name' => $user->user_name,
-            'email' => $user->user_email
-
-        ];
+        if ($user instanceof Admin) {
+            return [
+                'id' => $user->admin_id,
+                'name' => $user->admin_name,
+                'full_name' => $user->admin_full_name,
+                'email' => $user->admin_email,
+                'role' => $user->admin_role,
+                'user_type' => 'admin'
+            ];
+        } else {
+            return [
+                'id' => $user->user_id,
+                'name' => $user->user_name,
+                'email' => $user->user_email,
+                'user_type' => 'user'
+            ];
+        }
     }
 }
