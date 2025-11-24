@@ -99,10 +99,9 @@
                     </a>
                     
                     {{-- Discounts --}}
-                    <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10 transition opacity-50 cursor-not-allowed">
+                    <a href="{{ route('admin.discounts.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10 transition {{ request()->routeIs('admin.discounts.*') ? 'bg-white/20' : '' }}">
                         <i class="fas fa-percent w-5"></i>
                         <span>Khuyến mãi</span>
-                        <span class="text-xs">(Đang phát triển)</span>
                     </a>
                     
                     <hr class="my-4 border-white/10">

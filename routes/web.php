@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\SupplierController as AdminSupplierController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\DiscountController;
 
 /*
 |--------------------------------------------------------------------------
@@ -156,6 +157,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/{id}/print', [OrderController::class, 'print'])->name('print');
         Route::get('/statistics/view', [OrderController::class, 'statistics'])->name('statistics');
     });
+
+    // Discount Management
+    Route::resource('discounts', DiscountController::class);
+    Route::post('discounts/{id}/toggle-display', [DiscountController::class, 'toggleDisplay'])->name('discounts.toggle-display');
+    Route::get('discounts/{id}/statistics', [DiscountController::class, 'statistics'])->name('discounts.statistics');
 
     // Settings
     Route::get('/settings', function () {
