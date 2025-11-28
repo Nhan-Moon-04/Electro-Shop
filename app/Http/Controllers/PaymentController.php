@@ -83,33 +83,38 @@ class PaymentController extends Controller
         return view('payment.payment_page', ['order' => $order]);
     }
 
-    // Show checkout page (mua ngay từ sản phẩm)
+    // Show checkout page (mua ngay từ sản phẩm HOẶC từ giỏ hàng)
     public function showCheckout(Request $request)
     {
         $productVariantId = $request->product_variant_id;
         $quantity = $request->quantity ?? 1;
 
-        if (!$productVariantId) {
-            return redirect()->back()->with('error', 'Vui lòng chọn sản phẩm');
-        }
+        // If có product_variant_id thì mua 1 sản phẩm (mua ngay)
+        if ($productVariantId) {
+            $variant = ProductVariant::with([
+                'product.images' => function ($query) {
+                    $query->where('image_is_display', 1);
+                }
+            ])->find($productVariantId);
 
-        $variant = ProductVariant::with([
-            'product.images' => function ($query) {
-                $query->where('image_is_display', 1);
+            if (!$variant) {
+                return redirect()->back()->with('error', 'Sản phẩm không tồn tại');
             }
-        ])->find($productVariantId);
 
-        if (!$variant) {
-            return redirect()->back()->with('error', 'Sản phẩm không tồn tại');
+            $totalAmount = ($variant->product_variant_price ?? 0) * $quantity;
+
+            return view('checkout.index', [
+                'variant' => $variant,
+                'quantity' => $quantity,
+                'total_amount' => $totalAmount,
+                'type' => 'single' // đánh dấu đây là mua 1 sản phẩm
+            ]);
         }
 
-        $totalAmount = ($variant->product_variant_price ?? 0) * $quantity;
-
+        // Nếu không có product_variant_id thì checkout toàn bộ giỏ hàng
+        // Load cart items from session/database
         return view('checkout.index', [
-            'variant' => $variant,
-            'quantity' => $quantity,
-            'total_amount' => $totalAmount,
-            'type' => 'single' // đánh dấu đây là mua 1 sản phẩm
+            'type' => 'cart' // đánh dấu đây là mua từ giỏ hàng
         ]);
     }
 

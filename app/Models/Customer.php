@@ -18,8 +18,13 @@ class Customer extends Model
         'customer_id',
         'user_id'
     ];
-public function user()
-{
-    return $this->belongsTo(User::class, 'user_id', 'user_id');
-}
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'user_id');
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'customer_id', 'customer_id');
+    }
 }

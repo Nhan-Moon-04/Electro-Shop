@@ -30,11 +30,11 @@
                 <!-- Product Images -->
                 @php
                     $totalImages = ($product->product_avt_img ? 1 : 0) + $product->images->count();
-                    
+
                     // Lấy variant mặc định
-                    $selectedVariant = $product->variants->where('product_variant_is_display', 1)->first() 
-                                    ?? $product->variants->first();
-                    
+                    $selectedVariant = $product->variants->where('product_variant_is_display', 1)->first()
+                        ?? $product->variants->first();
+
                     // Lấy discount từ variant
                     $activeDiscount = $selectedVariant && $selectedVariant->discount ? $selectedVariant->discount : null;
                 @endphp
@@ -47,71 +47,66 @@
                         @if($product->product_period == 'new')
                             <span class="absolute top-4 right-4 badge-new z-10">MỚI</span>
                         @endif
-                        
+
                         @if($product->product_avt_img || $product->images->isNotEmpty())
                             <!-- Main product image (product_avt_img) -->
                             @if($product->product_avt_img)
                                 <img x-show="currentImage === 0"
                                     src="{{ asset('imgs/product_image/P' . $product->product_id . '/' . $product->product_avt_img) }}"
-                                    alt="{{ $product->product_name }}"
-                                    class="w-full h-96 object-contain"
+                                    alt="{{ $product->product_name }}" class="w-full h-96 object-contain"
                                     onerror="this.src='{{ asset('imgs/default.png') }}'">
                             @endif
-                            
+
                             <!-- Gallery images (image_name from product_imgs table) -->
                             @foreach($product->images as $index => $image)
                                 <img x-show="currentImage === {{ $product->product_avt_img ? $index + 1 : $index }}"
                                     src="{{ asset('imgs/product_image/P' . $product->product_id . '/' . $image->image_name) }}"
-                                    alt="{{ $product->product_name }}"
-                                    class="w-full h-96 object-contain"
+                                    alt="{{ $product->product_name }}" class="w-full h-96 object-contain"
                                     onerror="this.src='{{ asset('imgs/default.png') }}'">
                             @endforeach
                         @else
-                            <img src="{{ asset('imgs/default.png') }}"
-                                alt="Chưa có ảnh"
+                            <img src="{{ asset('imgs/default.png') }}" alt="Chưa có ảnh"
                                 class="w-full h-96 object-contain bg-gray-200">
                         @endif
 
                         <!-- Navigation Arrows -->
                         @if($totalImages > 1)
-                        <button @click="currentImage = currentImage > 0 ? currentImage - 1 : images - 1"
-                            class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center transition">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button @click="currentImage = currentImage < images - 1 ? currentImage + 1 : 0"
-                            class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center transition">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
+                            <button @click="currentImage = currentImage > 0 ? currentImage - 1 : images - 1"
+                                class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center transition">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button @click="currentImage = currentImage < images - 1 ? currentImage + 1 : 0"
+                                class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 w-10 h-10 rounded-full flex items-center justify-center transition">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
                         @endif
                     </div>
 
                     <!-- Thumbnail Images -->
                     @if($totalImages > 1)
-                    <div class="grid grid-cols-5 gap-2">
-                        {{-- Main product image thumbnail (product_avt_img) --}}
-                        @if($product->product_avt_img)
-                            <button @click="currentImage = 0"
-                                :class="currentImage === 0 ? 'border-primary border-2' : 'border-gray-300 border'"
-                                class="rounded-lg overflow-hidden hover:border-primary transition">
-                                <img src="{{ asset('imgs/product_image/P' . $product->product_id . '/' . $product->product_avt_img) }}"
-                                    alt="Thumbnail"
-                                    class="w-full h-20 object-cover"
-                                    onerror="this.src='{{ asset('imgs/default.png') }}'">
-                            </button>
-                        @endif
-                        
-                        {{-- Gallery thumbnails (image_name) --}}
-                        @foreach($product->images as $index => $image)
-                            <button @click="currentImage = {{ $product->product_avt_img ? $index + 1 : $index }}"
-                                :class="currentImage === {{ $product->product_avt_img ? $index + 1 : $index }} ? 'border-primary border-2' : 'border-gray-300 border'"
-                                class="rounded-lg overflow-hidden hover:border-primary transition">
-                                <img src="{{ asset('imgs/product_image/P' . $product->product_id . '/' . $image->image_name) }}"
-                                    alt="Thumbnail"
-                                    class="w-full h-20 object-cover"
-                                    onerror="this.src='{{ asset('imgs/default.png') }}'">
-                            </button>
-                        @endforeach
-                    </div>
+                        <div class="grid grid-cols-5 gap-2">
+                            {{-- Main product image thumbnail (product_avt_img) --}}
+                            @if($product->product_avt_img)
+                                <button @click="currentImage = 0"
+                                    :class="currentImage === 0 ? 'border-primary border-2' : 'border-gray-300 border'"
+                                    class="rounded-lg overflow-hidden hover:border-primary transition">
+                                    <img src="{{ asset('imgs/product_image/P' . $product->product_id . '/' . $product->product_avt_img) }}"
+                                        alt="Thumbnail" class="w-full h-20 object-cover"
+                                        onerror="this.src='{{ asset('imgs/default.png') }}'">
+                                </button>
+                            @endif
+
+                            {{-- Gallery thumbnails (image_name) --}}
+                            @foreach($product->images as $index => $image)
+                                <button @click="currentImage = {{ $product->product_avt_img ? $index + 1 : $index }}"
+                                    :class="currentImage === {{ $product->product_avt_img ? $index + 1 : $index }} ? 'border-primary border-2' : 'border-gray-300 border'"
+                                    class="rounded-lg overflow-hidden hover:border-primary transition">
+                                    <img src="{{ asset('imgs/product_image/P' . $product->product_id . '/' . $image->image_name) }}"
+                                        alt="Thumbnail" class="w-full h-20 object-cover"
+                                        onerror="this.src='{{ asset('imgs/default.png') }}'">
+                                </button>
+                            @endforeach
+                        </div>
                     @endif
                 </div>
 
@@ -138,10 +133,11 @@
                                     @endif
                                 @endfor
                             </div>
-                            <span class="text-gray-600">({{ number_format($rating, 1) }} - {{ $reviewCount ?? 0 }} đánh giá)</span>
+                            <span class="text-gray-600">({{ number_format($rating, 1) }} - {{ $reviewCount ?? 0 }} đánh
+                                giá)</span>
                         </div>
                         <span class="text-gray-400">|</span>
-                        <span class="text-gray-600"><strong>Thương hiệu:</strong> 
+                        <span class="text-gray-600"><strong>Thương hiệu:</strong>
                             @if($product->supplier)
                                 <a href="#" class="text-primary hover:underline">{{ $product->supplier->supplier_name }}</a>
                             @else
@@ -149,25 +145,29 @@
                             @endif
                         </span>
                         <span class="text-gray-400">|</span>
-                        <span class="text-gray-600">Đã bán: <strong>{{ number_format($product->product_view_count ?? 0) }}</strong></span>
+                        <span class="text-gray-600">Đã bán:
+                            <strong>{{ number_format($product->product_view_count ?? 0) }}</strong></span>
                     </div>
 
                     <!-- Price -->
                     <div class="bg-gray-50 rounded-lg p-6 mb-6">
                         @php
                             $originalPrice = $selectedVariant ? $selectedVariant->product_variant_price : 0;
-                            
+
                             // Tính giá sau giảm
                             $finalPrice = $originalPrice;
-                            if($activeDiscount) {
+                            if ($activeDiscount) {
                                 $finalPrice = $originalPrice - ($originalPrice * $activeDiscount->discount_amount / 100);
                             }
                         @endphp
                         <div class="flex items-baseline space-x-4 mb-2">
-                            <span class="text-4xl font-bold text-red-600" id="finalPrice">{{ number_format($finalPrice, 0, ',', '.') }}₫</span>
+                            <span class="text-4xl font-bold text-red-600"
+                                id="finalPrice">{{ number_format($finalPrice, 0, ',', '.') }}₫</span>
                             @if($activeDiscount)
-                                <span class="text-xl text-gray-400 line-through" id="originalPrice">{{ number_format($originalPrice, 0, ',', '.') }}₫</span>
-                                <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">-{{ $activeDiscount->discount_amount }}%</span>
+                                <span class="text-xl text-gray-400 line-through"
+                                    id="originalPrice">{{ number_format($originalPrice, 0, ',', '.') }}₫</span>
+                                <span
+                                    class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">-{{ $activeDiscount->discount_amount }}%</span>
                             @endif
                         </div>
                         <p class="text-sm text-gray-600">Giá đã bao gồm 10% VAT</p>
@@ -175,7 +175,8 @@
 
                     <!-- Product Variants -->
                     @if($product->variants->count() > 0)
-                        <div class="mb-6" x-data="{ selectedVariant: {{ $selectedVariant ? $selectedVariant->product_variant_id : 'null' }} }">
+                        <div class="mb-6"
+                            x-data="{ selectedVariant: {{ $selectedVariant ? $selectedVariant->product_variant_id : 'null' }} }">
                             <label class="block font-semibold mb-3">Dung lượng:</label>
                             <div class="grid grid-cols-4 gap-3">
                                 @foreach($product->variants as $variant)
@@ -201,18 +202,23 @@
                                 <button id="minusBtn" class="px-4 py-2 hover:bg-gray-100 transition">
                                     <i class="fas fa-minus"></i>
                                 </button>
-                                <input type="number" id="quantityInput" value="1" min="1" max="{{ $selectedVariant ? $selectedVariant->product_variant_available : 999 }}" class="w-16 text-center py-2 focus:outline-none">
+                                <input type="number" id="quantityInput" value="1" min="1"
+                                    max="{{ $selectedVariant ? $selectedVariant->product_variant_available : 999 }}"
+                                    class="w-16 text-center py-2 focus:outline-none">
                                 <button id="plusBtn" class="px-4 py-2 hover:bg-gray-100 transition">
                                     <i class="fas fa-plus"></i>
                                 </button>
                             </div>
-                            <span class="text-gray-600">Còn <strong class="text-primary" id="availableQuantity">{{ $selectedVariant ? $selectedVariant->product_variant_available : 0 }}</strong> sản phẩm</span>
+                            <span class="text-gray-600">Còn <strong class="text-primary"
+                                    id="availableQuantity">{{ $selectedVariant ? $selectedVariant->product_variant_available : 0 }}</strong>
+                                sản phẩm</span>
                         </div>
                     </div>
 
                     <!-- Action Buttons -->
                     <div class="grid grid-cols-2 gap-4 mb-4">
-                        <button id="addToCartBtn" class="btn-primary py-4 text-lg font-bold" data-variant-id="{{ $selectedVariant ? $selectedVariant->product_variant_id : '' }}">
+                        <button id="addToCartBtn" class="btn-primary py-4 text-lg font-bold"
+                            data-variant-id="{{ $selectedVariant ? $selectedVariant->product_variant_id : '' }}">
                             <i class="fas fa-shopping-cart mr-2"></i>Thêm vào giỏ hàng
                         </button>
                         <button id="buyNowBtn"
@@ -230,7 +236,7 @@
                             <i class="fas fa-share-alt mr-2"></i>Chia sẻ
                         </button>
                     </div>
-                    
+
                     <!-- Additional Info -->
                     <div class="mt-6 bg-blue-50 rounded-lg p-4">
                         <ul class="space-y-2 text-sm">
@@ -294,7 +300,8 @@
                                 @foreach($product->details as $detail)
                                     <tr>
                                         <td class="py-3 font-semibold bg-gray-50 px-4 w-1/3">{{ $detail->product_detail_name }}</td>
-                                        <td class="py-3 px-4">{{ $detail->product_detail_value }} {{ $detail->product_detail_unit }}</td>
+                                        <td class="py-3 px-4">{{ $detail->product_detail_value }} {{ $detail->product_detail_unit }}
+                                        </td>
                                     </tr>
                                 @endforeach
                             @else
@@ -350,56 +357,56 @@
 
         <!-- Related Products -->
         @if(isset($relatedProducts) && $relatedProducts->count() > 0)
-        <section>
-            <h2 class="text-2xl font-bold mb-6">Sản phẩm liên quan</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                @foreach($relatedProducts as $relatedProduct)
-                    <div class="product-card group">
-                        <div class="relative">
-                            @if($relatedProduct->product_avt_img)
-                                <img src="{{ asset('imgs/product_image/P' . $relatedProduct->product_id . '/' . $relatedProduct->product_avt_img) }}" 
-                                     alt="{{ $relatedProduct->product_name }}"
-                                     class="w-full h-48 object-cover"
-                                     onerror="this.src='{{ asset('imgs/default.png') }}'">
-                            @else
-                                <img src="{{ asset('imgs/default.png') }}" alt="No image" class="w-full h-48 object-cover">
-                            @endif
-                            <button
-                                class="absolute top-2 right-2 w-10 h-10 bg-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition hover:bg-primary hover:text-white">
-                                <i class="fas fa-heart"></i>
-                            </button>
-                        </div>
-                        <div class="p-4">
-                            <h3 class="font-semibold text-gray-800 mb-2 line-clamp-2 group-hover:text-primary transition">
-                                <a href="{{ route('products.show', $relatedProduct->product_id) }}">{{ $relatedProduct->product_name }}</a>
-                            </h3>
-                            <div class="flex items-center mb-2">
-                                <div class="flex text-yellow-400 text-sm">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        <i class="fas fa-star"></i>
-                                    @endfor
-                                </div>
-                                <span class="text-gray-500 text-sm ml-2">({{ $relatedProduct->product_rate ?? 0 }})</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    @php
-                                        $variant = $relatedProduct->variants->first();
-                                        $price = $variant ? $variant->product_variant_price : 0;
-                                    @endphp
-                                    <p class="text-primary font-bold text-lg">
-                                        {{ number_format($price, 0, ',', '.') }}₫
-                                    </p>
-                                </div>
-                                <button class="bg-primary text-white w-10 h-10 rounded-lg hover:bg-primary-600 transition">
-                                    <i class="fas fa-shopping-cart"></i>
+            <section>
+                <h2 class="text-2xl font-bold mb-6">Sản phẩm liên quan</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                    @foreach($relatedProducts as $relatedProduct)
+                        <div class="product-card group">
+                            <div class="relative">
+                                @if($relatedProduct->product_avt_img)
+                                    <img src="{{ asset('imgs/product_image/P' . $relatedProduct->product_id . '/' . $relatedProduct->product_avt_img) }}"
+                                        alt="{{ $relatedProduct->product_name }}" class="w-full h-48 object-cover"
+                                        onerror="this.src='{{ asset('imgs/default.png') }}'">
+                                @else
+                                    <img src="{{ asset('imgs/default.png') }}" alt="No image" class="w-full h-48 object-cover">
+                                @endif
+                                <button
+                                    class="absolute top-2 right-2 w-10 h-10 bg-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition hover:bg-primary hover:text-white">
+                                    <i class="fas fa-heart"></i>
                                 </button>
                             </div>
+                            <div class="p-4">
+                                <h3 class="font-semibold text-gray-800 mb-2 line-clamp-2 group-hover:text-primary transition">
+                                    <a
+                                        href="{{ route('products.show', $relatedProduct->product_id) }}">{{ $relatedProduct->product_name }}</a>
+                                </h3>
+                                <div class="flex items-center mb-2">
+                                    <div class="flex text-yellow-400 text-sm">
+                                        @for($i = 1; $i <= 5; $i++)
+                                            <i class="fas fa-star"></i>
+                                        @endfor
+                                    </div>
+                                    <span class="text-gray-500 text-sm ml-2">({{ $relatedProduct->product_rate ?? 0 }})</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        @php
+                                            $variant = $relatedProduct->variants->first();
+                                            $price = $variant ? $variant->product_variant_price : 0;
+                                        @endphp
+                                        <p class="text-primary font-bold text-lg">
+                                            {{ number_format($price, 0, ',', '.') }}₫
+                                        </p>
+                                    </div>
+                                    <button class="bg-primary text-white w-10 h-10 rounded-lg hover:bg-primary-600 transition">
+                                        <i class="fas fa-shopping-cart"></i>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                @endforeach
-            </div>
-        </section>
+                    @endforeach
+                </div>
+            </section>
         @endif
     </div>
 
@@ -431,37 +438,37 @@
 
         // Update variant selection and price
         document.querySelectorAll('.variant-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
                 const variantId = this.dataset.variantId;
                 const variantPrice = parseFloat(this.dataset.variantPrice);
                 const variantAvailable = this.dataset.variantAvailable;
                 const discount = parseFloat(this.dataset.discount);
-                
+
                 // Calculate prices
                 const originalPrice = variantPrice;
                 const finalPrice = discount > 0 ? originalPrice - (originalPrice * discount / 100) : originalPrice;
-                
+
                 // Update price display
                 const finalPriceEl = document.getElementById('finalPrice');
                 const originalPriceEl = document.getElementById('originalPrice');
-                
+
                 if (finalPriceEl) {
                     finalPriceEl.textContent = new Intl.NumberFormat('vi-VN').format(finalPrice) + '₫';
                 }
-                
+
                 if (originalPriceEl && discount > 0) {
                     originalPriceEl.textContent = new Intl.NumberFormat('vi-VN').format(originalPrice) + '₫';
                 }
-                
+
                 // Update buttons
                 document.getElementById('addToCartBtn').dataset.variantId = variantId;
                 document.getElementById('buyNowBtn').dataset.variantId = variantId;
-                
+
                 // Update available quantity
                 if (document.getElementById('availableQuantity')) {
                     document.getElementById('availableQuantity').textContent = variantAvailable;
                 }
-                
+
                 // Update max quantity input
                 if (quantityInput) {
                     quantityInput.max = variantAvailable;
@@ -510,8 +517,18 @@
                         quantity: quantity
                     })
                 })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (response.status === 401) {
+                            alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!');
+                            localStorage.removeItem('auth_token');
+                            window.location.href = '/login';
+                            return null;
+                        }
+                        return response.json();
+                    })
                     .then(data => {
+                        if (!data) return;
+
                         if (data.success) {
                             this.innerHTML = '<i class="fas fa-check mr-2"></i>Đã thêm!';
                             this.classList.add('bg-green-500', 'hover:bg-green-600');
@@ -528,14 +545,14 @@
                                 updateCartCount();
                             }
                         } else {
-                            alert(data.message || 'Có lỗi xảy ra!');
+                            alert(data.message || data.error || 'Có lỗi xảy ra khi thêm vào giỏ hàng!');
                             this.innerHTML = originalHTML;
                             this.disabled = false;
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
-                        alert('Không thể thêm vào giỏ hàng!');
+                        console.error('Error adding to cart:', error);
+                        alert('Không thể thêm vào giỏ hàng. Vui lòng thử lại!');
                         this.innerHTML = originalHTML;
                         this.disabled = false;
                     });
@@ -547,6 +564,14 @@
 
         if (buyNowBtn) {
             buyNowBtn.addEventListener('click', function () {
+                const token = localStorage.getItem('auth_token');
+
+                if (!token) {
+                    alert('Vui lòng đăng nhập để mua hàng!');
+                    window.location.href = '/login';
+                    return;
+                }
+
                 const productVariantId = this.dataset.variantId;
                 const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
 
@@ -555,12 +580,8 @@
                     return;
                 }
 
-                const params = new URLSearchParams({
-                    product_variant_id: productVariantId,
-                    quantity: quantity
-                });
-
-                window.location.href = '/checkout?' + params.toString();
+                // Redirect directly to checkout page with product info
+                window.location.href = `/checkout?product_variant_id=${productVariantId}&quantity=${quantity}`;
             });
         }
     </script>

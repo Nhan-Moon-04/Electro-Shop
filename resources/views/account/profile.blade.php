@@ -36,7 +36,8 @@
                             <i class="fas fa-user"></i>
                             <span class="font-medium">Thông tin tài khoản</span>
                         </a>
-                        <a href="#" class="flex items-center space-x-3 px-4 py-3 hover:bg-gray-100 rounded-lg transition">
+                        <a href="{{ route('account.orders') }}"
+                            class="flex items-center space-x-3 px-4 py-3 hover:bg-gray-100 rounded-lg transition">
                             <i class="fas fa-box"></i>
                             <span class="font-medium">Đơn hàng của tôi</span>
                         </a>
@@ -95,29 +96,6 @@
                                 <input type="tel" name="phone" value="" class="input-field" placeholder="Chưa có">
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Ngày sinh</label>
-                                <input type="date" name="birthday" value="" class="input-field">
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Giới tính</label>
-                                <select name="gender" class="input-field">
-                                    <option value="male">Nam</option>
-                                    <option value="female">Nữ</option>
-                                    <option value="other">Khác</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Tỉnh/Thành phố</label>
-                                <select name="province" class="input-field">
-                                    <option value="hcm" selected>TP. Hồ Chí Minh</option>
-                                    <option value="hanoi">Hà Nội</option>
-                                    <option value="danang">Đà Nẵng</option>
-                                </select>
-                            </div>
-
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Địa chỉ</label>
                                 <input type="text" name="address" value="" class="input-field" placeholder="Chưa có">
@@ -158,6 +136,7 @@
             const accountEmailEl = document.getElementById('account-email');
             const formInputName = document.querySelector('input[name="name"]');
             const formInputEmail = document.querySelector('input[name="email"]');
+            const formInputPhone = document.querySelector('input[name="phone"]');
 
             if (!token) {
 
@@ -187,6 +166,15 @@
 
                         if (formInputName) formInputName.value = data.name;
                         if (formInputEmail) formInputEmail.value = data.email;
+                        if (formInputPhone && data.phone && data.phone !== '0000000000') {
+                            formInputPhone.value = data.phone;
+                        }
+
+                        // Update address if available
+                        const formInputAddress = document.querySelector('input[name="address"]');
+                        if (formInputAddress && data.address) {
+                            formInputAddress.value = data.address;
+                        }
 
 
                     } else {
@@ -213,6 +201,77 @@
                         localStorage.removeItem('auth_token');
                         window.location.href = '/login';
                     }
+                });
+            }
+
+            // Handle update profile form
+            const updateForm = document.getElementById('account-update-form');
+            if (updateForm) {
+                updateForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+
+                    const formData = {
+                        name: document.querySelector('input[name="name"]').value,
+                        email: document.querySelector('input[name="email"]').value,
+                        phone: document.querySelector('input[name="phone"]').value,
+                        address: document.querySelector('input[name="address"]').value,
+                    };
+
+                    console.log('Sending update:', formData);
+
+                    fetch('/api/auth/update-profile', {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    })
+                        .then(response => {
+                            if (response.status === 401) {
+                                alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!');
+                                localStorage.removeItem('auth_token');
+                                window.location.href = '/login';
+                                return null;
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (!data) return;
+
+                            console.log('Update response:', data);
+
+                            if (data.success || data.message) {
+                                alert('✓ Cập nhật thông tin thành công!');
+
+                                // Update displayed data immediately without reload
+                                if (data.user) {
+                                    if (accountNameEl) accountNameEl.innerText = data.user.name;
+                                    if (accountEmailEl) accountEmailEl.innerText = data.user.email;
+                                    if (formInputName) formInputName.value = data.user.name;
+                                    if (formInputEmail) formInputEmail.value = data.user.email;
+
+                                    // Update phone if available
+                                    const formInputPhone = document.querySelector('input[name="phone"]');
+                                    if (formInputPhone && data.user.phone) {
+                                        formInputPhone.value = data.user.phone;
+                                    }
+
+                                    // Update address if available
+                                    const formInputAddress = document.querySelector('input[name="address"]');
+                                    if (formInputAddress && data.user.address) {
+                                        formInputAddress.value = data.user.address;
+                                    }
+                                }
+                            } else {
+                                alert(data.error || 'Có lỗi xảy ra khi cập nhật thông tin!');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error updating profile:', error);
+                            alert('Không thể cập nhật thông tin. Vui lòng thử lại!');
+                        });
                 });
             }
         });

@@ -123,19 +123,19 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label class="block text-lg font-medium text-gray-700 mb-3">Tên biến thể <span class="text-red-500">*</span></label>
-                            <input type="text" name="variants[0][product_variant_name]" 
+                            <input type="text" name="variants[0][name]" 
                                 class="w-full px-6 py-4 text-lg border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
                         </div>
 
                         <div>
                             <label class="block text-lg font-medium text-gray-700 mb-3">Giá (₫) <span class="text-red-500">*</span></label>
-                            <input type="number" name="variants[0][product_variant_price]" 
+                            <input type="number" name="variants[0][price]" 
                                 class="w-full px-6 py-4 text-lg border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
                         </div>
 
                         <div>
                             <label class="block text-lg font-medium text-gray-700 mb-3">Số lượng <span class="text-red-500">*</span></label>
-                            <input type="number" name="variants[0][product_variant_available]" 
+                            <input type="number" name="variants[0][available]" 
                                 class="w-full px-6 py-4 text-lg border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
                         </div>
                     </div>
@@ -171,19 +171,19 @@ function addVariant() {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
                 <label class="block text-lg font-medium text-gray-700 mb-3">Tên biến thể <span class="text-red-500">*</span></label>
-                <input type="text" name="variants[${variantCount}][product_variant_name]" 
+                <input type="text" name="variants[${variantCount}][name]" 
                     class="w-full px-6 py-4 text-lg border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
             </div>
 
             <div>
                 <label class="block text-lg font-medium text-gray-700 mb-3">Giá (₫) <span class="text-red-500">*</span></label>
-                <input type="number" name="variants[${variantCount}][product_variant_price]" 
+                <input type="number" name="variants[${variantCount}][price]" 
                     class="w-full px-6 py-4 text-lg border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
             </div>
 
             <div>
                 <label class="block text-lg font-medium text-gray-700 mb-3">Số lượng <span class="text-red-500">*</span></label>
-                <input type="number" name="variants[${variantCount}][product_variant_available]" 
+                <input type="number" name="variants[${variantCount}][available]" 
                     class="w-full px-6 py-4 text-lg border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
             </div>
         </div>

@@ -36,6 +36,19 @@
 
             <!-- Cart Items -->
             <div class="lg:col-span-2 space-y-4">
+                <!-- Select All -->
+                <div class="bg-white rounded-lg shadow-md p-4 flex items-center justify-between mb-4">
+                    <label class="flex items-center cursor-pointer">
+                        <input type="checkbox" id="select-all-checkbox"
+                            class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                            onchange="toggleSelectAll(this)">
+                        <span class="ml-3 font-semibold">Chọn tất cả (<span id="selected-count">0</span>/<span
+                                id="total-count">0</span>)</span>
+                    </label>
+                    <button class="text-red-500 hover:text-red-700 font-semibold" onclick="deleteSelected()">
+                        <i class="fas fa-trash mr-2"></i>Xóa đã chọn
+                    </button>
+                </div>
                 <div id="cart-items-list"></div>
             </div>
 
@@ -68,10 +81,12 @@
                     </div>
 
                     <!-- Checkout Button -->
-                    <a href="{{ route('checkout.index') }}" class="block w-full btn-primary py-4 text-lg mb-3 text-center">
-                        Tiến hành thanh toán
+                    <button id="checkout-btn"
+                        class="block w-full btn-primary py-4 text-lg mb-3 text-center disabled:opacity-50 disabled:cursor-not-allowed"
+                        onclick="proceedToCheckout()" disabled>
+                        Tiến hành thanh toán (<span id="checkout-count">0</span>)
                         <i class="fas fa-arrow-right ml-2"></i>
-                    </a>
+                    </button>
 
                     <a href="{{ route('products.index') }}" class="block w-full btn-outline text-center py-3">
                         <i class="fas fa-arrow-left mr-2"></i>Tiếp tục mua sắm
@@ -143,50 +158,62 @@
 
             data.items.forEach(item => {
                 html += `
-                            <div class="bg-white rounded-lg shadow-md p-4 flex items-center gap-4">
-                                <img src="/${item.image}" alt="${item.product_name}" 
-                                     class="w-24 h-24 object-cover rounded-lg"
-                                     onerror="this.src='/imgs/default.png'">
+                                        <div class="bg-white rounded-lg shadow-md p-4 flex items-center gap-4">
+                                            <input type="checkbox" class="item-checkbox w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500" 
+                                                   data-variant-id="${item.product_variant_id}" 
+                                                   data-price="${item.price}" 
+                                                   data-quantity="${item.quantity}"
+                                                   onchange="updateSelectedItems()">
 
-                                <div class="flex-1">
-                                    <h3 class="font-semibold text-gray-800 mb-1 hover:text-primary cursor-pointer">
-                                        ${item.product_name}
-                                    </h3>
-                                    <p class="text-sm text-gray-500 mb-2">${item.variant_name}</p>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-red-600 font-bold text-lg">${formatPrice(item.price)}₫</span>
-                                        ${item.discount_percent > 0 ? `
-                                            <span class="text-gray-400 text-sm line-through">${formatPrice(item.original_price)}₫</span>
-                                            <span class="badge-sale">-${item.discount_percent}%</span>
-                                        ` : ''}
-                                    </div>
-                                </div>
+                                            <img src="/${item.image}" alt="${item.product_name}" 
+                                                 class="w-24 h-24 object-cover rounded-lg"
+                                                 onerror="this.src='/imgs/default.png'">
 
-                                <div class="flex items-center gap-4">
-                                    <div class="flex items-center border-2 border-gray-300 rounded-lg">
-                                        <button class="px-3 py-2 hover:bg-gray-100 transition" onclick="updateQuantity(${item.product_variant_id}, ${item.quantity - 1})">
-                                            <i class="fas fa-minus text-sm"></i>
-                                        </button>
-                                        <input type="number" value="${item.quantity}" min="1" class="w-12 text-center py-2 focus:outline-none" readonly>
-                                        <button class="px-3 py-2 hover:bg-gray-100 transition" onclick="updateQuantity(${item.product_variant_id}, ${item.quantity + 1})">
-                                            <i class="fas fa-plus text-sm"></i>
-                                        </button>
-                                    </div>
-                                    <button class="text-red-500 hover:text-red-700 transition" onclick="removeItem(${item.product_variant_id})">
-                                        <i class="fas fa-trash text-xl"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        `;
+                                            <div class="flex-1">
+                                                <h3 class="font-semibold text-gray-800 mb-1 hover:text-primary cursor-pointer">
+                                                    ${item.product_name}
+                                                </h3>
+                                                <p class="text-sm text-gray-500 mb-2">${item.variant_name}</p>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-red-600 font-bold text-lg">${formatPrice(item.price)}₫</span>
+                                                    ${item.discount_percent > 0 ? `
+                                                        <span class="text-gray-400 text-sm line-through">${formatPrice(item.original_price)}₫</span>
+                                                        <span class="badge-sale">-${item.discount_percent}%</span>
+                                                    ` : ''}
+                                                </div>
+                                            </div>
+
+                                            <div class="flex items-center gap-4">
+                                                <div class="flex items-center border-2 border-gray-300 rounded-lg">
+                                                    <button class="px-3 py-2 hover:bg-gray-100 transition" onclick="updateQuantity(${item.product_variant_id}, ${item.quantity - 1})">
+                                                        <i class="fas fa-minus text-sm"></i>
+                                                    </button>
+                                                    <input type="number" value="${item.quantity}" min="1" class="w-12 text-center py-2 focus:outline-none" readonly>
+                                                    <button class="px-3 py-2 hover:bg-gray-100 transition" onclick="updateQuantity(${item.product_variant_id}, ${item.quantity + 1})">
+                                                        <i class="fas fa-plus text-sm"></i>
+                                                    </button>
+                                                </div>
+                                                <button class="text-red-500 hover:text-red-700 transition" onclick="removeItem(${item.product_variant_id})">
+                                                    <i class="fas fa-trash text-xl"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `;
             });
 
             itemsList.innerHTML = html;
             document.getElementById('cart-item-count').innerText = data.count + ' sản phẩm';
+            document.getElementById('total-count').innerText = data.count;
+
+            // Store total for later use
+            window.cartTotalAmount = data.total;
+
+            // Show total of all items initially
             document.getElementById('cart-subtotal').innerText = formatPrice(data.total) + '₫';
             document.getElementById('cart-total').innerText = formatPrice(data.total) + '₫';
-        }
 
-        function formatPrice(price) {
+            updateSelectedItems();
+        } function formatPrice(price) {
             return Math.round(price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
 
@@ -248,6 +275,105 @@
                     }
                 })
                 .catch(error => console.error('Error:', error));
+        }
+
+        function toggleSelectAll(checkbox) {
+            const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+            itemCheckboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+            });
+            updateSelectedItems();
+        }
+
+        function updateSelectedItems() {
+            const itemCheckboxes = document.querySelectorAll('.item-checkbox');
+            const checkedBoxes = document.querySelectorAll('.item-checkbox:checked');
+            const selectAllCheckbox = document.getElementById('select-all-checkbox');
+            const checkoutBtn = document.getElementById('checkout-btn');
+
+            // Update counts
+            document.getElementById('selected-count').innerText = checkedBoxes.length;
+            document.getElementById('checkout-count').innerText = checkedBoxes.length;
+
+            // Update select all checkbox
+            selectAllCheckbox.checked = checkedBoxes.length === itemCheckboxes.length && itemCheckboxes.length > 0;
+
+            // Enable/disable checkout button
+            checkoutBtn.disabled = checkedBoxes.length === 0;
+
+            // Calculate total for selected items or show all items total
+            let displayTotal;
+            if (checkedBoxes.length > 0) {
+                // Calculate selected items total
+                displayTotal = 0;
+                checkedBoxes.forEach(checkbox => {
+                    const price = parseFloat(checkbox.dataset.price);
+                    const quantity = parseInt(checkbox.dataset.quantity);
+                    displayTotal += price * quantity;
+                });
+            } else {
+                // Show all items total when nothing selected
+                displayTotal = window.cartTotalAmount || 0;
+            }
+
+            document.getElementById('cart-subtotal').innerText = formatPrice(displayTotal) + '₫';
+            document.getElementById('cart-total').innerText = formatPrice(displayTotal) + '₫';
+        }
+
+        function deleteSelected() {
+            const checkedBoxes = document.querySelectorAll('.item-checkbox:checked');
+            if (checkedBoxes.length === 0) {
+                alert('Vui lòng chọn sản phẩm cần xóa');
+                return;
+            }
+
+            if (!confirm(`Bạn có chắc muốn xóa ${checkedBoxes.length} sản phẩm đã chọn?`)) {
+                return;
+            }
+
+            const token = localStorage.getItem('auth_token');
+            const deletePromises = [];
+
+            checkedBoxes.forEach(checkbox => {
+                const variantId = checkbox.dataset.variantId;
+                deletePromises.push(
+                    fetch('/api/cart/remove', {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ product_variant_id: parseInt(variantId) })
+                    })
+                );
+            });
+
+            Promise.all(deletePromises)
+                .then(() => {
+                    loadCart();
+                    if (typeof updateCartCount === 'function') {
+                        updateCartCount();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function proceedToCheckout() {
+            const checkedBoxes = document.querySelectorAll('.item-checkbox:checked');
+            if (checkedBoxes.length === 0) {
+                alert('Vui lòng chọn sản phẩm để thanh toán');
+                return;
+            }
+
+            const selectedItems = [];
+            checkedBoxes.forEach(checkbox => {
+                selectedItems.push(checkbox.dataset.variantId);
+            });
+
+            // Store selected items in sessionStorage to use in checkout page
+            sessionStorage.setItem('checkout_items', JSON.stringify(selectedItems));
+            window.location.href = '/checkout';
         }
 
         document.addEventListener('DOMContentLoaded', loadCart);

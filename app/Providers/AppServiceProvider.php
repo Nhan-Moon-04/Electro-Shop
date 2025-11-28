@@ -32,7 +32,36 @@ class AppServiceProvider extends ServiceProvider
                 ->limit(12)
                 ->get();
 
-            $view->with('headerCategories', $headerCategories);
+            // Also share for product filters
+            $categories = Category::where('category_is_display', 1)
+                ->withCount([
+                    'products' => function ($query) {
+                        $query->where('product_is_display', 1);
+                    }
+                ])
+                ->orderBy('category_name', 'asc')
+                ->get();
+
+            $view->with('headerCategories', $headerCategories)
+                 ->with('categories', $categories);
+            
+            // Share admin info for admin layout
+            try {
+                if (request()->is('admin/*')) {
+                    $token = request()->cookie('admin_token') 
+                        ?? request()->header('X-Admin-Token')
+                        ?? request()->header('Authorization');
+                    
+                    if ($token) {
+                        $token = str_replace('Bearer ', '', $token);
+                        \PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth::setToken($token);
+                        $admin = \PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth::authenticate();
+                        $view->with('currentAdmin', $admin);
+                    }
+                }
+            } catch (\Exception $e) {
+                // Silently fail, admin will be null
+            }
         });
     }
 }

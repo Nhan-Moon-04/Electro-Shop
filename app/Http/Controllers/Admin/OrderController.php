@@ -54,8 +54,7 @@ class OrderController extends Controller
             'customer',
             'staff',
             'payingMethod',
-            'orderDetails.productVariant.product',
-            'orderDetails.productVariant.productDetails'
+            'orderDetails.productVariant.product'
         ])->findOrFail($id);
 
         return view('admin.orders.show', compact('order'));
@@ -77,12 +76,13 @@ class OrderController extends Controller
             
             // Cập nhật nhân viên xử lý
             if (!$order->staff_id) {
-                $order->staff_id = auth()->id();
+                $order->staff_id = 1; // Default staff ID
             }
 
-            // Tự động cập nhật trạng thái thanh toán khi hoàn thành
+            // Tự động cập nhật đã thanh toán khi hoàn thành
             if ($request->status == 'Hoàn thành') {
-                $order->order_paying_status = 1;
+                $order->order_is_paid = 1;
+                $order->order_paying_date = now();
             }
 
             $order->save();

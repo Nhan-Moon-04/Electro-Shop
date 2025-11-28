@@ -85,6 +85,17 @@ class ProductController extends Controller
             $query->where('product_rate', '>=', (int) $rating);
         }
 
+        // Search theo keyword
+        if ($search = $request->input('q')) {
+            $query->where(function($q) use ($search) {
+                $q->where('product_name', 'like', "%{$search}%")
+                  ->orWhere('product_description', 'like', "%{$search}%")
+                  ->orWhereHas('category', function($catQuery) use ($search) {
+                      $catQuery->where('category_name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
         // Sort
         switch ($request->input('sort')) {
             case 'price_asc':

@@ -48,8 +48,8 @@
                         <i class="fas fa-user"></i>
                     </div>
                     <div>
-                        <p class="font-semibold">Admin User</p>
-                        <p class="text-xs text-white/70">administrator</p>
+                        <p class="font-semibold">{{ $currentAdmin->admin_name ?? 'Admin' }}</p>
+                        <p class="text-xs text-white/70">{{ $currentAdmin->admin_role ?? 'administrator' }}</p>
                     </div>
                 </div>
             </div>
@@ -85,11 +85,10 @@
                        
                     </a>
                     
-                    {{-- Users --}}
-                    <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10 transition opacity-50 cursor-not-allowed">
+                    {{-- Customers --}}
+                    <a href="{{ route('admin.customers.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10 transition {{ request()->routeIs('admin.customers.*') ? 'bg-white/20' : '' }}">
                         <i class="fas fa-users w-5"></i>
                         <span>Khách hàng</span>
-                        <span class="text-xs">(Đang phát triển)</span>
                     </a>
                     
                     {{-- Suppliers --}}
@@ -99,13 +98,19 @@
                     </a>
                     
                     {{-- Discounts --}}
-                    <a href="#" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10 transition opacity-50 cursor-not-allowed">
+                   <a href="{{ route('admin.discounts.index') }}" class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10 transition {{ request()->routeIs('admin.discounts.*') ? 'bg-white/20' : '' }}">
                         <i class="fas fa-percent w-5"></i>
                         <span>Khuyến mãi</span>
-                        <span class="text-xs">(Đang phát triển)</span>
                     </a>
                     
                     <hr class="my-4 border-white/10">
+                    
+                    {{-- Backup & Restore --}}
+                    <a href="{{ route('admin.backup.index') }}" 
+                       class="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-white/10 transition {{ request()->routeIs('admin.backup.*') ? 'bg-white/20' : '' }}">
+                        <i class="fas fa-database w-5"></i>
+                        <span>Backup & Restore</span>
+                    </a>
                     
                     {{-- Settings --}}
                     <a href="{{ route('admin.settings') }}" 
@@ -233,6 +238,26 @@
          @click="sidebarOpen = false"
          x-cloak
          class="fixed inset-0 bg-black/50 z-40 lg:hidden"></div>
+    
+    {{-- Admin Token Handler --}}
+    <script>
+        // Get token from localStorage
+        const adminToken = localStorage.getItem('admin_token');
+        
+        // If token exists, set it to all fetch requests
+        if (adminToken) {
+            const originalFetch = window.fetch;
+            window.fetch = function(url, options = {}) {
+                options.headers = options.headers || {};
+                options.headers['X-Admin-Token'] = adminToken;
+                options.headers['Authorization'] = 'Bearer ' + adminToken;
+                return originalFetch(url, options);
+            };
+        } else {
+            // No token found, redirect to login
+            console.warn('No admin token found');
+        }
+    </script>
     
     @stack('scripts')
 </body>
