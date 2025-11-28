@@ -433,7 +433,12 @@
                     'Accept': 'application/json'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Không thể tải thông tin sản phẩm');
+                }
+                return response.json();
+            })
             .then(productData => {
                 if (!productData.variants || productData.variants.length === 0) {
                     alert('Sản phẩm tạm hết hàng!');
@@ -455,8 +460,18 @@
                         quantity: 1
                     })
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (response.status === 401) {
+                        alert('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại!');
+                        localStorage.removeItem('auth_token');
+                        window.location.href = '/login';
+                        return null;
+                    }
+                    return response.json();
+                })
                 .then(data => {
+                    if (!data) return;
+                    
                     if (data.success) {
                         // Show success animation
                         const originalHTML = button.innerHTML;
@@ -473,12 +488,12 @@
                             updateCartCount();
                         }
                     } else {
-                        alert(data.message || 'Có lỗi xảy ra!');
+                        alert(data.message || data.error || 'Có lỗi xảy ra khi thêm vào giỏ hàng!');
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    alert('Không thể thêm vào giỏ hàng!');
+                    console.error('Error adding to cart:', error);
+                    alert('Không thể thêm vào giỏ hàng. Vui lòng thử lại!');
                 });
             })
             .catch(error => {

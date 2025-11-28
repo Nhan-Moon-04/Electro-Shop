@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ForgotPasswordController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,6 +41,7 @@ Route::group([
     Route::group(['middleware' => 'auth:api'], function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'userProfile']); // Lấy thông tin user
+        Route::put('/update-profile', [AuthController::class, 'updateProfile']); // Cập nhật thông tin user
         Route::post('/refresh', [AuthController::class, 'refresh']); // Làm mới token
     });
 });
@@ -54,9 +56,19 @@ Route::group([
     Route::post('/add', [CartController::class, 'addToCart']);
     Route::put('/update', [CartController::class, 'updateQuantity']);
     Route::delete('/remove', [CartController::class, 'removeItem']);
+    Route::post('/checkout', [CartController::class, 'checkout']);
 });
 
 // Product Routes
 Route::get('/products/{id}', [ProductController::class, 'show']);
 
+// Order Routes
+Route::group([
+    'prefix' => 'orders',
+    'middleware' => 'auth:api'
+], function () {
+    Route::get('/my-orders', [OrderController::class, 'myOrders']);
+    Route::get('/{id}', [OrderController::class, 'show']);
+    Route::post('/{id}/cancel', [OrderController::class, 'cancel']);
+});
 

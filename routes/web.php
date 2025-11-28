@@ -55,12 +55,12 @@ Route::middleware(['auth'])->group(function () {
     })->name('account.update');
 
     Route::get('/account/orders', function () {
-        return view('account.profile');
+        return view('account.orders');
     })->name('account.orders');
 
-    Route::get('/account/addresses', function () {
-        return view('account.profile');
-    })->name('account.addresses');
+    Route::get('/account/order-detail', function () {
+        return view('account.order-detail');
+    })->name('account.order-detail');
 
     Route::get('/account/wishlist', function () {
         return view('account.profile');
@@ -95,6 +95,10 @@ Route::get('/register', function () {
 Route::get('/account', function () {
     return view('account.profile');
 })->name('account.profile');
+
+Route::get('/account/orders', function () {
+    return view('account.orders');
+})->name('account.orders');
 
 // Quên mật khẩu
 Route::get('/forgot-password', function () {

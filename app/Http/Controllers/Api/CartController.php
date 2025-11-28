@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Cart;
 use App\Models\Customer;
+use App\Models\Order;
+use App\Models\OrderDetail;
+use App\Models\ProductVariant;
+use Illuminate\Support\Facades\DB;
 
 class CartController extends Controller
 {
@@ -15,7 +19,7 @@ class CartController extends Controller
     public function getCartCount(Request $request)
     {
         try {
-            $user = auth()->user();
+            $user = auth('api')->user();
 
             if (!$user) {
                 return response()->json([
@@ -24,7 +28,7 @@ class CartController extends Controller
             }
 
             // Get customer_id from user
-            $customer = Customer::where('user_id', $user->id)->first();
+            $customer = Customer::where('user_id', $user->user_id)->first();
 
             if (!$customer) {
                 return response()->json([
@@ -52,7 +56,7 @@ class CartController extends Controller
     public function getCart(Request $request)
     {
         try {
-            $user = auth()->user();
+            $user = auth('api')->user();
 
             if (!$user) {
                 return response()->json([
@@ -61,7 +65,7 @@ class CartController extends Controller
                 ]);
             }
 
-            $customer = Customer::where('user_id', $user->id)->first();
+            $customer = Customer::where('user_id', $user->user_id)->first();
 
             if (!$customer) {
                 return response()->json([
@@ -137,7 +141,7 @@ class CartController extends Controller
                 'quantity' => 'integer|min:1'
             ]);
 
-            $user = auth()->user();
+            $user = auth('api')->user();
             if (!$user) {
                 return response()->json([
                     'success' => false,
@@ -145,7 +149,7 @@ class CartController extends Controller
                 ], 401);
             }
 
-            $customer = Customer::where('user_id', $user->id)->first();
+            $customer = Customer::where('user_id', $user->user_id)->first();
             if (!$customer) {
                 return response()->json([
                     'success' => false,
@@ -197,7 +201,7 @@ class CartController extends Controller
                 'quantity' => 'required|integer|min:1'
             ]);
 
-            $user = auth()->user();
+            $user = auth('api')->user();
             if (!$user) {
                 return response()->json([
                     'success' => false,
@@ -205,7 +209,7 @@ class CartController extends Controller
                 ], 401);
             }
 
-            $customer = Customer::where('user_id', $user->id)->first();
+            $customer = Customer::where('user_id', $user->user_id)->first();
             if (!$customer) {
                 return response()->json([
                     'success' => false,
@@ -249,7 +253,7 @@ class CartController extends Controller
                 'product_variant_id' => 'required|exists:product_variants,product_variant_id'
             ]);
 
-            $user = auth()->user();
+            $user = auth('api')->user();
             if (!$user) {
                 return response()->json([
                     'success' => false,
@@ -257,7 +261,7 @@ class CartController extends Controller
                 ], 401);
             }
 
-            $customer = Customer::where('user_id', $user->id)->first();
+            $customer = Customer::where('user_id', $user->user_id)->first();
             if (!$customer) {
                 return response()->json([
                     'success' => false,
@@ -277,6 +281,140 @@ class CartController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Checkout from cart - create order from selected cart items
+     */
+    public function checkout(Request $request)
+    {
+        try {
+            $request->validate([
+                'cart_items' => 'required|array|min:1',
+                'cart_items.*' => 'integer|exists:product_variants,product_variant_id',
+                'order_name' => 'required|string',
+                'order_phone' => 'required|string',
+                'order_delivery_address' => 'required|string',
+                'paying_method_id' => 'required|integer|in:1,2,3',
+                'order_note' => 'nullable|string'
+            ]);
+
+            $user = auth('api')->user();
+            if (!$user) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized'
+                ], 401);
+            }
+
+            $customer = Customer::where('user_id', $user->user_id)->first();
+            if (!$customer) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Customer not found'
+                ], 404);
+            }
+
+            // Get selected cart items
+            $cartItems = Cart::where('customer_id', $customer->customer_id)
+                ->whereIn('product_variant_id', $request->cart_items)
+                ->with('productVariant.discount')
+                ->get();
+
+            if ($cartItems->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No items found in cart'
+                ], 404);
+            }
+
+            // Calculate total
+            $totalBefore = 0;
+            $orderDetails = [];
+
+            foreach ($cartItems as $item) {
+                if (!$item->productVariant) {
+                    continue;
+                }
+
+                $price = $item->productVariant->product_variant_price;
+                $priceAfterDiscount = $price;
+
+                // Apply discount if available
+                if ($item->productVariant->discount) {
+                    $discountPercent = $item->productVariant->discount->discount_amount;
+                    $priceAfterDiscount = $price * (1 - $discountPercent / 100);
+                }
+
+                $subtotal = $priceAfterDiscount * $item->cart_quantity;
+                $totalBefore += $subtotal;
+
+                $orderDetails[] = [
+                    'product_variant_id' => $item->product_variant_id,
+                    'quantity' => $item->cart_quantity,
+                    'price_before' => $price,
+                    'price_after' => $priceAfterDiscount
+                ];
+            }
+
+            // Create order with transaction
+            DB::beginTransaction();
+            try {
+                // Find next order_id
+                $max = DB::table('orders')->max('order_id');
+                $orderId = $max ? $max + 1 : 1;
+
+                $order = Order::create([
+                    'order_id' => $orderId,
+                    'customer_id' => $customer->customer_id,
+                    'staff_id' => 1,
+                    'order_name' => $request->order_name,
+                    'order_phone' => $request->order_phone,
+                    'order_date' => date('Y-m-d'),
+                    'order_delivery_date' => date('Y-m-d'),
+                    'order_delivery_address' => $request->order_delivery_address,
+                    'order_note' => $request->order_note ?? '',
+                    'order_total_before' => $totalBefore,
+                    'order_total_after' => $totalBefore,
+                    'paying_method_id' => $request->paying_method_id,
+                    'order_paying_date' => '1970-01-01 00:00:00',
+                    'order_is_paid' => 0,
+                    'order_status' => 'Chờ thanh toán'
+                ]);
+
+                // Create order details
+                foreach ($orderDetails as $detail) {
+                    OrderDetail::create([
+                        'order_id' => $orderId,
+                        'product_variant_id' => $detail['product_variant_id'],
+                        'order_detail_quantity' => $detail['quantity'],
+                        'order_detail_price_before' => $detail['price_before'],
+                        'order_detail_price_after' => $detail['price_after'],
+                    ]);
+                }
+
+                // Remove checked out items from cart
+                Cart::where('customer_id', $customer->customer_id)
+                    ->whereIn('product_variant_id', $request->cart_items)
+                    ->delete();
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'order_id' => $orderId,
+                    'message' => 'Đặt hàng thành công'
+                ], 201);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra: ' . $e->getMessage()
             ], 500);
         }
     }
